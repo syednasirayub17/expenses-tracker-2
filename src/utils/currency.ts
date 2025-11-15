@@ -2,9 +2,9 @@ export const formatCurrency = (amount: number): string => {
   const preferences = localStorage.getItem('userPreferences')
   if (preferences) {
     const { currencySymbol } = JSON.parse(preferences)
-    return `${currencySymbol}${amount.toFixed(2)}`
+    return `${currencySymbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
-  return `₹${amount.toFixed(2)}`
+  return `₹${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export const formatCurrencyWithoutSymbol = (amount: number): string => {

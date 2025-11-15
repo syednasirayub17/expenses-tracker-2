@@ -1,0 +1,40 @@
+.cash-in-hand-manager {
+  padding: 20px 0;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.total-cash {
+  font-size: 18px;
+  font-weight: 700;
+  color: #667eea;
+  padding: 8px 16px;
+  background: #f0f4ff;
+  border-radius: 8px;
+}
+
+.no-accounts {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.no-accounts p {
+  color: #999;
+  font-size: 16px;
+}
+
+.account-type {
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+

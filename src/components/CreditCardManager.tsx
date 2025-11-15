@@ -143,6 +143,30 @@ const CreditCardManager = () => {
                               <div className={`transaction-amount ${transaction.type}`}>
                                 {transaction.type === 'payment' ? '+' : '-'}{formatCurrency(transaction.amount)}
                               </div>
+                              <div className="transaction-actions">
+                                <button 
+                                  className="action-button secondary"
+                                  onClick={() => {
+                                    // TODO: Implement edit transaction
+                                    console.log('Edit transaction:', transaction.id);
+                                  }}
+                                  style={{ padding: '4px 8px', fontSize: '12px', minWidth: 'auto' }}
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  className="action-button danger"
+                                  onClick={() => {
+                                    if (window.confirm('Delete transaction?')) {
+                                      // TODO: Implement delete transaction
+                                      console.log('Delete transaction:', transaction.id);
+                                    }
+                                  }}
+                                  style={{ padding: '4px 8px', fontSize: '12px', minWidth: 'auto' }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           ))}
                       </div>

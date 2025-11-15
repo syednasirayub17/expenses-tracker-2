@@ -5,11 +5,13 @@ import { formatCurrency } from '../utils/currency'
 import './CreditCardManager.css'
 
 const CreditCardManager = () => {
-  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions } = useAccount()
+  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
+  const [isEditingTransaction, setIsEditingTransaction] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null)
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
   const categories = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other']
 
@@ -51,8 +53,19 @@ const CreditCardManager = () => {
       description: formData.get('description') as string || undefined,
       linkedAccountId: transactionType === 'payment' ? formData.get('linkedAccountId') as string : undefined,
     }
-    addTransaction(transaction)
+    
+    if (isEditingTransaction && editingTransaction) {
+      // For editing, we need to delete the old transaction and add the new one
+      // since the useAccount context doesn't have an updateTransaction function
+      deleteTransaction(editingTransaction.id)
+      addTransaction(transaction)
+    } else {
+      addTransaction(transaction)
+    }
+    
     setIsTransactionFormOpen(false)
+    setIsEditingTransaction(false)
+    setEditingTransaction(null)
     e.currentTarget.reset()
   }
 
@@ -147,8 +160,11 @@ const CreditCardManager = () => {
                                 <button 
                                   className="action-button secondary"
                                   onClick={() => {
-                                    // TODO: Implement edit transaction
-                                    console.log('Edit transaction:', transaction.id);
+                                    // Edit transaction
+                                    setEditingTransaction(transaction)
+                                    setIsEditingTransaction(true)
+                                    setSelectedCard(card)
+                                    setIsTransactionFormOpen(true)
                                   }}
                                   style={{ padding: '4px 8px', fontSize: '12px', minWidth: 'auto' }}
                                 >
@@ -158,8 +174,7 @@ const CreditCardManager = () => {
                                   className="action-button danger"
                                   onClick={() => {
                                     if (window.confirm('Delete transaction?')) {
-                                      // TODO: Implement delete transaction
-                                      console.log('Delete transaction:', transaction.id);
+                                      deleteTransaction(transaction.id)
                                     }
                                   }}
                                   style={{ padding: '4px 8px', fontSize: '12px', minWidth: 'auto' }}
@@ -227,7 +242,7 @@ const CreditCardManager = () => {
       {isTransactionFormOpen && selectedCard && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Add Transaction - {selectedCard.name}</h3>
+            <h3>{isEditingTransaction ? 'Edit' : 'Add'} Transaction - {selectedCard?.name}</h3>
             <form onSubmit={handleAddTransaction}>
               <div className="form-group">
                 <label>Type *</label>
@@ -268,8 +283,8 @@ const CreditCardManager = () => {
                 <textarea name="description" rows={3} />
               </div>
               <div className="form-actions">
-                <button type="button" onClick={() => { setIsTransactionFormOpen(false); setSelectedCard(null) }}>Cancel</button>
-                <button type="submit">Add Transaction</button>
+                <button type="button" onClick={() => { setIsTransactionFormOpen(false); setIsEditingTransaction(false); setEditingTransaction(null); setSelectedCard(null) }}>Cancel</button>
+                <button type="submit">{isEditingTransaction ? 'Update' : 'Add'} Transaction</button>
               </div>
             </form>
           </div>

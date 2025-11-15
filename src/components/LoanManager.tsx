@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
 import { Loan, Transaction } from '../types'
+import CategoryManager from './CategoryManager'
 import './LoanManager.css'
 
 const LoanManager = () => {
-  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions } = useAccount()
+  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories, addCategory } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isEMIFormOpen, setIsEMIFormOpen] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null)
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [categoryType, setCategoryType] = useState<'payment'>('payment')
 
   const handleAddLoan = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -46,7 +49,7 @@ const LoanManager = () => {
       accountType: 'loan',
       type: 'payment',
       amount: emiAmount,
-      category: 'EMI Payment',
+      category: formData.get('category') as string || 'EMI Payment',
       date: formData.get('date') as string || new Date().toISOString().split('T')[0],
       description: `EMI Payment for ${selectedLoan.name}`,
       linkedAccountId: formData.get('linkedAccountId') as string || selectedLoan.linkedBankAccountId,
@@ -248,6 +251,32 @@ const LoanManager = () => {
                 <input type="date" name="date" defaultValue={new Date().toISOString().split('T')[0]} required />
               </div>
               <div className="form-group">
+                <label>Category *</label>
+                <div className="category-select-wrapper">
+                  <select 
+                    name="category" 
+                    defaultValue="EMI Payment"
+                    required
+                  >
+                    {accountCategories.payment.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="EMI Payment">EMI Payment</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategoryType('payment')
+                      setShowCategoryManager(true)
+                    }}
+                    className="add-category-btn"
+                    title="Manage Categories"
+                  >
+                    ⚙️
+                  </button>
+                </div>
+              </div>
+              <div className="form-group">
                 <label>Pay from Bank Account *</label>
                 <select name="linkedAccountId" defaultValue={selectedLoan.linkedBankAccountId} required>
                   <option value="">Select Account</option>
@@ -263,6 +292,20 @@ const LoanManager = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {showCategoryManager && (
+        <CategoryManager
+          categoryType={categoryType}
+          onClose={() => setShowCategoryManager(false)}
+          onSelect={(category) => {
+            const select = document.querySelector(`select[name="category"]`) as HTMLSelectElement
+            if (select) {
+              select.value = category
+            }
+            setShowCategoryManager(false)
+          }}
+        />
       )}
     </div>
   )

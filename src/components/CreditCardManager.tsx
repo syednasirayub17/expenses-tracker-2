@@ -2,17 +2,20 @@ import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
 import { CreditCard, Transaction } from '../types'
 import { formatCurrency } from '../utils/currency'
+import CategoryManager from './CategoryManager'
 import './CreditCardManager.css'
 
 const CreditCardManager = () => {
-  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction } = useAccount()
+  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction, categories: accountCategories, addCategory } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null)
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const [categoryType, setCategoryType] = useState<'expense' | 'payment'>('expense')
 
-  const categories = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other']
+  const defaultCategories = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other']
 
   const handleAddCard = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -247,7 +250,21 @@ const CreditCardManager = () => {
                 <label>Type *</label>
                 <select 
                   name="type" 
+                  id="transaction-type-select"
                   defaultValue={editingTransaction?.type || 'expense'}
+                  onChange={(e) => {
+                    const type = e.target.value as 'expense' | 'payment'
+                    const categorySelect = document.getElementById('category-select') as HTMLSelectElement
+                    if (categorySelect) {
+                      const typeCategories = type === 'expense' ? accountCategories.expense : accountCategories.payment
+                      categorySelect.innerHTML = typeCategories.map(cat => 
+                        `<option value="${cat}">${cat}</option>`
+                      ).join('')
+                      if (editingTransaction) {
+                        categorySelect.value = editingTransaction.category
+                      }
+                    }
+                  }}
                   required
                 >
                   <option value="expense">Expense</option>
@@ -256,15 +273,43 @@ const CreditCardManager = () => {
               </div>
               <div className="form-group">
                 <label>Category *</label>
-                <select 
-                  name="category" 
-                  defaultValue={editingTransaction?.category || categories[0]}
-                  required
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+                <div className="category-select-wrapper">
+                  <select 
+                    name="category" 
+                    id="category-select" 
+                    defaultValue={editingTransaction?.category || accountCategories.expense[0]} 
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_NEW__') {
+                        e.target.value = editingTransaction?.category || accountCategories.expense[0]
+                        const typeSelect = document.getElementById('transaction-type-select') as HTMLSelectElement
+                        const type = typeSelect?.value as 'expense' | 'payment'
+                        setCategoryType(type || 'expense')
+                        setShowCategoryManager(true)
+                      }
+                    }}
+                    required
+                  >
+                    {(editingTransaction ? 
+                      (editingTransaction.type === 'expense' ? accountCategories.expense :
+                       accountCategories.payment) : accountCategories.expense).map((cat: string) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="__ADD_NEW__" className="add-category-option">+ Add New Category</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const typeSelect = document.getElementById('transaction-type-select') as HTMLSelectElement
+                      const type = typeSelect?.value as 'expense' | 'payment'
+                      setCategoryType(type || 'expense')
+                      setShowCategoryManager(true)
+                    }}
+                    className="add-category-btn"
+                    title="Manage Categories"
+                  >
+                    ⚙️
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>Amount *</label>
@@ -296,6 +341,20 @@ const CreditCardManager = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {showCategoryManager && (
+        <CategoryManager
+          categoryType={categoryType}
+          onClose={() => setShowCategoryManager(false)}
+          onSelect={(category) => {
+            const select = document.querySelector(`select[name="category"]`) as HTMLSelectElement
+            if (select) {
+              select.value = category
+            }
+            setShowCategoryManager(false)
+          }}
+        />
       )}
     </div>
   )

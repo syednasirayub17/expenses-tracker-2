@@ -435,8 +435,34 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedTransactions = transactions.map((t) => (t.id === transaction.id ? transaction : t))
     setTransactions(updatedTransactions)
     
+    // Handle bank account balance adjustments when transaction is updated
+    if (transaction.accountType === 'bank') {
+      const account = bankAccounts.find((a) => a.id === transaction.accountId)
+      if (account) {
+        let newBalance = account.balance
+        
+        // If there was an old transaction, reverse its effect first
+        if (oldTransaction) {
+          if (oldTransaction.type === 'income') {
+            newBalance = account.balance - oldTransaction.amount
+          } else {
+            newBalance = account.balance + oldTransaction.amount
+          }
+        }
+        
+        // Then apply the new transaction effect
+        if (transaction.type === 'income') {
+          newBalance = newBalance + transaction.amount
+        } else {
+          newBalance = newBalance - transaction.amount
+        }
+        
+        updateBankAccount({ ...account, balance: newBalance })
+      }
+    }
+    
     // Handle credit card balance adjustments when transaction is updated
-    if (transaction.accountType === 'creditCard') {
+    else if (transaction.accountType === 'creditCard') {
       const card = creditCards.find((c) => c.id === transaction.accountId)
       if (card) {
         let newBalance = card.currentBalance
@@ -466,6 +492,46 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
     
+    // Handle loan balance adjustments when transaction is updated
+    else if (transaction.accountType === 'loan' && transaction.type === 'payment') {
+      const loan = loans.find((l) => l.id === transaction.accountId)
+      if (loan) {
+        let newRemaining = loan.remainingAmount
+        
+        // If there was an old transaction, reverse its effect first
+        if (oldTransaction && oldTransaction.type === 'payment') {
+          newRemaining = loan.remainingAmount + oldTransaction.amount
+        }
+        
+        // Then apply the new transaction effect
+        newRemaining = Math.max(0, newRemaining - transaction.amount)
+        const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
+        
+        updateLoan({
+          ...loan,
+          remainingAmount: newRemaining,
+          remainingMonths: newRemainingMonths,
+        })
+        
+        // Reconciliation: Adjust linked bank account
+        if (transaction.linkedAccountId) {
+          const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
+          if (linkedAccount) {
+            let newBankBalance = linkedAccount.balance
+            
+            // Reverse old transaction effect
+            if (oldTransaction && oldTransaction.linkedAccountId === transaction.linkedAccountId) {
+              newBankBalance = linkedAccount.balance + oldTransaction.amount
+            }
+            
+            // Apply new transaction effect
+            newBankBalance = newBankBalance - transaction.amount
+            updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+          }
+        }
+      }
+    }
+    
     // Immediately save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
@@ -477,8 +543,25 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedTransactions = transactions.filter((t) => t.id !== id)
     setTransactions(updatedTransactions)
     
+    // If this was a bank account transaction, recalculate the account balance
+    if (transactionToDelete && transactionToDelete.accountType === 'bank') {
+      const account = bankAccounts.find((a) => a.id === transactionToDelete.accountId)
+      if (account) {
+        let newBalance = account.balance
+        
+        // Reverse the transaction effect
+        if (transactionToDelete.type === 'income') {
+          newBalance = account.balance - transactionToDelete.amount
+        } else {
+          newBalance = account.balance + transactionToDelete.amount
+        }
+        
+        updateBankAccount({ ...account, balance: newBalance })
+      }
+    }
+    
     // If this was a credit card transaction, recalculate the card balance
-    if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
+    else if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
       const card = creditCards.find((c) => c.id === transactionToDelete.accountId)
       if (card) {
         let newBalance = card.currentBalance
@@ -496,6 +579,33 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           currentBalance: newBalance,
           availableCredit: newAvailableCredit,
         })
+      }
+    }
+    
+    // If this was a loan payment transaction, recalculate the loan balance
+    else if (transactionToDelete && transactionToDelete.accountType === 'loan' && transactionToDelete.type === 'payment') {
+      const loan = loans.find((l) => l.id === transactionToDelete.accountId)
+      if (loan) {
+        let newRemaining = loan.remainingAmount
+        
+        // Reverse the transaction effect
+        newRemaining = loan.remainingAmount + transactionToDelete.amount
+        const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
+        
+        updateLoan({
+          ...loan,
+          remainingAmount: newRemaining,
+          remainingMonths: newRemainingMonths,
+        })
+        
+        // Reconciliation: Refund to linked bank account
+        if (transactionToDelete.linkedAccountId) {
+          const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
+          if (linkedAccount) {
+            const newBankBalance = linkedAccount.balance + transactionToDelete.amount
+            updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+          }
+        }
       }
     }
     

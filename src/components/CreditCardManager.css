@@ -58,7 +58,7 @@
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
   gap: 24px;
   width: 100%;
   box-sizing: border-box;
@@ -124,10 +124,11 @@
 .card-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
   width: 100%;
   box-sizing: border-box;
   margin-top: 12px;
+  min-width: 360px;
 }
 
 .stat-item {
@@ -150,13 +151,14 @@
 
 .stat-value {
   display: block;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: #333;
   white-space: nowrap;
   overflow: visible;
   line-height: 1.1;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 120px;
 }
 
 .stat-value.used {
@@ -302,6 +304,7 @@
   box-sizing: border-box;
   min-width: 0;
   gap: 12px;
+  flex-wrap: nowrap;
 }
 
 .transaction-info {
@@ -311,6 +314,7 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  flex-shrink: 1;
 }
 
 .transaction-type {
@@ -342,13 +346,14 @@
 }
 
 .transaction-amount {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   flex-shrink: 0;
   white-space: nowrap;
-  min-width: 140px;
+  min-width: 150px;
   text-align: right;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.2;
 }
 
 .transaction-amount.expense {

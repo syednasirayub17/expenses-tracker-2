@@ -43,42 +43,111 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Simple authentication - in production, this would call an API
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
-    const foundUser = users.find(
-      (u: any) => u.username === username && u.password === password
-    )
+    try {
+      // Try API first, fallback to localStorage
+      const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
+      
+      try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        })
 
-    if (foundUser) {
-      const userData = { username: foundUser.username, email: foundUser.email }
+        if (response.ok) {
+          const data = await response.json()
+          const userData = { 
+            username: data.username, 
+            email: data.email,
+            fullName: data.fullName,
+            phone: data.phone
+          }
+          setUser(userData)
+          setIsAuthenticated(true)
+          localStorage.setItem('user', JSON.stringify(userData))
+          localStorage.setItem('isAuthenticated', 'true')
+          localStorage.setItem('token', data.token)
+          return true
+        }
+      } catch (apiError) {
+        console.log('API not available, using localStorage')
+      }
+
+      // Fallback to localStorage
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      const foundUser = users.find(
+        (u: any) => u.username === username && u.password === password
+      )
+
+      if (foundUser) {
+        const userData = { username: foundUser.username, email: foundUser.email }
+        setUser(userData)
+        setIsAuthenticated(true)
+        localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('isAuthenticated', 'true')
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Login error:', error)
+      return false
+    }
+  }
+
+  const register = async (username: string, email: string, password: string): Promise<boolean> => {
+    try {
+      // Try API first, fallback to localStorage
+      const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
+      
+      try {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const userData = { 
+            username: data.username, 
+            email: data.email,
+            fullName: data.fullName,
+            phone: data.phone
+          }
+          setUser(userData)
+          setIsAuthenticated(true)
+          localStorage.setItem('user', JSON.stringify(userData))
+          localStorage.setItem('isAuthenticated', 'true')
+          localStorage.setItem('token', data.token)
+          return true
+        } else {
+          return false
+        }
+      } catch (apiError) {
+        console.log('API not available, using localStorage')
+      }
+
+      // Fallback to localStorage
+      const users = JSON.parse(localStorage.getItem('users') || '[]')
+      
+      if (users.some((u: any) => u.username === username)) {
+        return false
+      }
+
+      const newUser = { username, email, password }
+      users.push(newUser)
+      localStorage.setItem('users', JSON.stringify(users))
+
+      const userData = { username, email }
       setUser(userData)
       setIsAuthenticated(true)
       localStorage.setItem('user', JSON.stringify(userData))
       localStorage.setItem('isAuthenticated', 'true')
       return true
-    }
-    return false
-  }
-
-  const register = async (username: string, email: string, password: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]')
-    
-    // Check if username already exists
-    if (users.some((u: any) => u.username === username)) {
+    } catch (error) {
+      console.error('Registration error:', error)
       return false
     }
-
-    const newUser = { username, email, password }
-    users.push(newUser)
-    localStorage.setItem('users', JSON.stringify(users))
-
-    // Auto-login after registration
-    const userData = { username, email }
-    setUser(userData)
-    setIsAuthenticated(true)
-    localStorage.setItem('user', JSON.stringify(userData))
-    localStorage.setItem('isAuthenticated', 'true')
-    return true
   }
 
   const updateProfile = async (updates: Partial<User>): Promise<boolean> => {

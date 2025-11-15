@@ -275,7 +275,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   const updateCreditCard = (card: CreditCard) => {
-    const updatedCards = creditCards.map((c) => (c.id === card.id ? card : c))
+    // When updating a card, recalculate available credit based on current balance
+    const updatedCard = {
+      ...card,
+      availableCredit: card.limit - card.currentBalance
+    }
+    
+    const updatedCards = creditCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
     setCreditCards(updatedCards)
     if (username) {
       localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
@@ -425,8 +431,41 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   const updateTransaction = (transaction: Transaction) => {
+    const oldTransaction = transactions.find((t) => t.id === transaction.id)
     const updatedTransactions = transactions.map((t) => (t.id === transaction.id ? transaction : t))
     setTransactions(updatedTransactions)
+    
+    // Handle credit card balance adjustments when transaction is updated
+    if (transaction.accountType === 'creditCard') {
+      const card = creditCards.find((c) => c.id === transaction.accountId)
+      if (card) {
+        let newBalance = card.currentBalance
+        
+        // If there was an old transaction, reverse its effect first
+        if (oldTransaction) {
+          if (oldTransaction.type === 'expense') {
+            newBalance = Math.max(0, card.currentBalance - oldTransaction.amount)
+          } else if (oldTransaction.type === 'payment') {
+            newBalance = card.currentBalance + oldTransaction.amount
+          }
+        }
+        
+        // Then apply the new transaction effect
+        if (transaction.type === 'expense') {
+          newBalance = newBalance + transaction.amount
+        } else if (transaction.type === 'payment') {
+          newBalance = Math.max(0, newBalance - transaction.amount)
+        }
+        
+        const newAvailableCredit = card.limit - newBalance
+        updateCreditCard({
+          ...card,
+          currentBalance: newBalance,
+          availableCredit: newAvailableCredit,
+        })
+      }
+    }
+    
     // Immediately save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
@@ -434,8 +473,32 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   const deleteTransaction = (id: string) => {
+    const transactionToDelete = transactions.find((t) => t.id === id)
     const updatedTransactions = transactions.filter((t) => t.id !== id)
     setTransactions(updatedTransactions)
+    
+    // If this was a credit card transaction, recalculate the card balance
+    if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
+      const card = creditCards.find((c) => c.id === transactionToDelete.accountId)
+      if (card) {
+        let newBalance = card.currentBalance
+        
+        // Reverse the transaction effect
+        if (transactionToDelete.type === 'expense') {
+          newBalance = Math.max(0, card.currentBalance - transactionToDelete.amount)
+        } else if (transactionToDelete.type === 'payment') {
+          newBalance = card.currentBalance + transactionToDelete.amount
+        }
+        
+        const newAvailableCredit = card.limit - newBalance
+        updateCreditCard({
+          ...card,
+          currentBalance: newBalance,
+          availableCredit: newAvailableCredit,
+        })
+      }
+    }
+    
     // Immediately save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))

@@ -61,9 +61,11 @@
 }
 
 .expense-amount {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #333;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .expense-item-body {

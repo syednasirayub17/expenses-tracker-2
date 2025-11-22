@@ -5,7 +5,7 @@ import CategoryManager from './CategoryManager'
 import './LoanManager.css'
 
 const LoanManager = () => {
-  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories, addCategory } = useAccount()
+  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isEMIFormOpen, setIsEMIFormOpen] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
@@ -43,7 +43,7 @@ const LoanManager = () => {
 
     const formData = new FormData(e.currentTarget)
     const emiAmount = parseFloat(formData.get('emiAmount') as string) || selectedLoan.emiAmount
-    
+
     const transaction: Omit<Transaction, 'id'> = {
       accountId: selectedLoan.id,
       accountType: 'loan',
@@ -253,8 +253,8 @@ const LoanManager = () => {
               <div className="form-group">
                 <label>Category *</label>
                 <div className="category-select-wrapper">
-                  <select 
-                    name="category" 
+                  <select
+                    name="category"
                     defaultValue="EMI Payment"
                     required
                   >

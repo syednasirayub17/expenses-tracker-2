@@ -23,3 +23,41 @@ dist-ssr
 *.sln
 *.sw?
 
+
+# Environment variables
+.env
+.env.local
+.env.production
+server/.env
+
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build outputs
+dist/
+build/
+server/dist/
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+*.apk
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Gemini artifacts
+.gemini/

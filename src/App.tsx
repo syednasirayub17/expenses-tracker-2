@@ -4,11 +4,18 @@ import { AccountProvider } from './context/AccountContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/Admin/AdminDashboard'
 import './App.css'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated')
+  return isAdminAuthenticated ? <>{children}</> : <Navigate to="/admin/login" />
 }
 
 function App() {
@@ -18,6 +25,7 @@ function App() {
         <AccountProvider>
           <Router>
             <Routes>
+              {/* User Routes */}
               <Route path="/login" element={<Login />} />
               <Route
                 path="/dashboard"
@@ -27,6 +35,18 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+
               <Route path="/" element={<Navigate to="/dashboard" />} />
             </Routes>
           </Router>

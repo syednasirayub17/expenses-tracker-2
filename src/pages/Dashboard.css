@@ -8,6 +8,8 @@
   box-shadow: 0 2px 8px var(--shadow);
   padding: 20px 0;
   margin-bottom: 30px;
+  position: relative;
+  z-index: 200;
 }
 
 .header-content {
@@ -48,6 +50,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 300;
+  pointer-events: auto;
 }
 
 .logout-button:hover {
@@ -151,9 +156,8 @@
   .nav-tab {
     padding: 10px 16px;
   }
-  
+
   .tab-label {
     display: none;
   }
 }
-

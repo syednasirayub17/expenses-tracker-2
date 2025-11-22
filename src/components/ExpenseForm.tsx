@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Expense } from '../pages/Dashboard'
+import { Expense } from '../types'
 import './ExpenseForm.css'
 
 interface ExpenseFormProps {

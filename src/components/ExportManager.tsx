@@ -1,9 +1,10 @@
 import { useAccount } from '../context/AccountContext'
 import { formatCurrency } from '../utils/currency'
+import { Transaction } from '../types'
 import './ExportManager.css'
 
 const ExportManager = () => {
-  const { bankAccounts, creditCards, loans, transactions, budgets, savings, categories } = useAccount()
+  const { bankAccounts, creditCards, loans, transactions, budgets, savings } = useAccount()
 
   const exportToCSV = () => {
     // Export transactions to CSV
@@ -90,16 +91,16 @@ const ExportManager = () => {
 
     // Create CSV content
     let csvContent = 'Category Wise Transaction Report\n\n'
-    
+
     Object.entries(categoryData).forEach(([category, categoryTransactions]) => {
       const total = categoryTransactions.reduce((sum, t) => {
         return sum + (t.type === 'income' ? t.amount : -t.amount)
       }, 0)
-      
+
       csvContent += `\n=== ${category} ===\n`
       csvContent += `Total: ${formatCurrency(Math.abs(total))} (${total >= 0 ? 'Income' : 'Expense'})\n`
       csvContent += 'Date,Type,Amount,Description,Account\n'
-      
+
       categoryTransactions
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .forEach((t) => {

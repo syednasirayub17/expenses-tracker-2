@@ -131,3 +131,10 @@ export interface UserPreferences {
   reminderDays: number
 }
 
+export interface DayBookEntry {
+  id: string
+  _id?: string
+  date: string
+  notes: string
+  transactions: string[]
+}

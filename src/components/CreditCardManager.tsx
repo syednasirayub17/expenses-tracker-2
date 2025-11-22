@@ -6,7 +6,7 @@ import CategoryManager from './CategoryManager'
 import './CreditCardManager.css'
 
 const CreditCardManager = () => {
-  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction, categories: accountCategories, addCategory } = useAccount()
+  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction, categories: accountCategories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null)
@@ -14,8 +14,6 @@ const CreditCardManager = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const [categoryType, setCategoryType] = useState<'expense' | 'payment'>('expense')
-
-  const defaultCategories = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other']
 
   const handleAddCard = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -44,7 +42,7 @@ const CreditCardManager = () => {
 
     const formData = new FormData(e.currentTarget)
     const transactionType = formData.get('type') as 'expense' | 'payment'
-    
+
     const transaction: Omit<Transaction, 'id'> = {
       accountId: selectedCard.id,
       accountType: 'creditCard',
@@ -55,7 +53,7 @@ const CreditCardManager = () => {
       description: formData.get('description') as string || undefined,
       linkedAccountId: transactionType === 'payment' ? formData.get('linkedAccountId') as string : undefined,
     }
-    
+
     if (editingTransaction) {
       // For editing, we need to delete the old transaction and add the new one
       // since the useAccount context doesn't have an updateTransaction function
@@ -248,8 +246,8 @@ const CreditCardManager = () => {
             <form onSubmit={handleAddTransaction}>
               <div className="form-group">
                 <label>Type *</label>
-                <select 
-                  name="type" 
+                <select
+                  name="type"
                   id="transaction-type-select"
                   defaultValue={editingTransaction?.type || 'expense'}
                   onChange={(e) => {
@@ -257,7 +255,7 @@ const CreditCardManager = () => {
                     const categorySelect = document.getElementById('category-select') as HTMLSelectElement
                     if (categorySelect) {
                       const typeCategories = type === 'expense' ? accountCategories.expense : accountCategories.payment
-                      categorySelect.innerHTML = typeCategories.map(cat => 
+                      categorySelect.innerHTML = typeCategories.map(cat =>
                         `<option value="${cat}">${cat}</option>`
                       ).join('')
                       if (editingTransaction) {
@@ -274,10 +272,10 @@ const CreditCardManager = () => {
               <div className="form-group">
                 <label>Category *</label>
                 <div className="category-select-wrapper">
-                  <select 
-                    name="category" 
-                    id="category-select" 
-                    defaultValue={editingTransaction?.category || accountCategories.expense[0]} 
+                  <select
+                    name="category"
+                    id="category-select"
+                    defaultValue={editingTransaction?.category || accountCategories.expense[0]}
                     onChange={(e) => {
                       if (e.target.value === '__ADD_NEW__') {
                         e.target.value = editingTransaction?.category || accountCategories.expense[0]
@@ -289,11 +287,11 @@ const CreditCardManager = () => {
                     }}
                     required
                   >
-                    {(editingTransaction ? 
+                    {(editingTransaction ?
                       (editingTransaction.type === 'expense' ? accountCategories.expense :
-                       accountCategories.payment) : accountCategories.expense).map((cat: string) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
+                        accountCategories.payment) : accountCategories.expense).map((cat: string) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                     <option value="__ADD_NEW__" className="add-category-option">+ Add New Category</option>
                   </select>
                   <button

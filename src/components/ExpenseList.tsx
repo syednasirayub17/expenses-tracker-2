@@ -1,4 +1,4 @@
-import { Expense } from '../pages/Dashboard'
+import { Expense } from '../types'
 import './ExpenseList.css'
 
 interface ExpenseListProps {

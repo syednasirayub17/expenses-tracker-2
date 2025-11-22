@@ -1,4 +1,4 @@
-import { Expense } from '../pages/Dashboard'
+import { Expense } from '../types'
 import './ExpenseSummary.css'
 
 interface ExpenseSummaryProps {
@@ -7,7 +7,7 @@ interface ExpenseSummaryProps {
 
 const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
-  
+
   const expensesByCategory = expenses.reduce((acc, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount
     return acc

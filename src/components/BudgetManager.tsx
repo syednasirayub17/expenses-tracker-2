@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
-import { Budget, Transaction } from '../types'
+import { Budget } from '../types'
 import './BudgetManager.css'
 
 const BudgetManager = () => {
@@ -48,7 +48,7 @@ const BudgetManager = () => {
   const getBudgetPeriod = (budget: Budget) => {
     const start = new Date(budget.startDate)
     let end: Date
-    
+
     if (budget.endDate) {
       end = new Date(budget.endDate)
     } else if (budget.period === 'monthly') {
@@ -58,15 +58,14 @@ const BudgetManager = () => {
       end.setDate(end.getDate() + 6)
       end.setHours(23, 59, 59)
     }
-    
+
     return { start, end }
   }
 
   const getBudgetStatus = (budget: Budget) => {
     const spent = getBudgetSpent(budget)
-    const remaining = budget.amount - spent
     const percentage = (spent / budget.amount) * 100
-    
+
     if (percentage >= 100) return { status: 'exceeded', color: '#f44336' }
     if (percentage >= 80) return { status: 'warning', color: '#ff9800' }
     return { status: 'good', color: '#4caf50' }

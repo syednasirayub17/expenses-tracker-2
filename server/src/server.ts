@@ -1,20 +1,27 @@
-import express, { Application } from 'express';
+// Load environment variables FIRST before any imports
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
+import accountRoutes from './routes/accountRoutes';
 import { errorHandler } from './middleware/errorHandler';
-
-// Load environment variables
-dotenv.config();
+import googleSheets from './services/googleSheets';
 
 // Initialize express app
 const app: Application = express();
 
 // Connect to database
 connectDB();
+
+// Initialize Google Sheets structure
+googleSheets.initializeSheetStructure().catch(err =>
+  console.error('Failed to initialize Google Sheets:', err)
+);
 
 // Middleware
 app.use(helmet());
@@ -32,6 +39,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/accounts', accountRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

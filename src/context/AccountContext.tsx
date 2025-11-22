@@ -9,6 +9,7 @@ import {
   AccountReconciliation,
 } from '../types'
 import { useAuth } from './AuthContext'
+import * as accountApi from '../services/accountApi'
 
 interface AccountContextType {
   bankAccounts: BankAccount[]
@@ -23,40 +24,40 @@ interface AccountContextType {
     income: string[]
     payment: string[]
   }
-  
+
   // Bank Account methods
   addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt'>) => void
   updateBankAccount: (account: BankAccount) => void
   deleteBankAccount: (id: string) => void
-  
+
   // Credit Card methods
   addCreditCard: (card: Omit<CreditCard, 'id' | 'createdAt' | 'currentBalance' | 'availableCredit'>) => void
   updateCreditCard: (card: CreditCard) => void
   deleteCreditCard: (id: string) => void
-  
+
   // Loan methods
   addLoan: (loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths'>) => void
   updateLoan: (loan: Loan) => void
   deleteLoan: (id: string) => void
-  
+
   // Transaction methods
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void
   updateTransaction: (transaction: Transaction) => void
   deleteTransaction: (id: string) => void
-  
+
   // Budget methods
   addBudget: (budget: Omit<Budget, 'id'>) => void
   updateBudget: (budget: Budget) => void
   deleteBudget: (id: string) => void
-  
+
   // Savings methods
   addSavings: (savings: Omit<Savings, 'id'>) => void
   updateSavings: (savings: Savings) => void
   deleteSavings: (id: string) => void
-  
+
   // Reconciliation methods
   addReconciliation: (reconciliation: Omit<AccountReconciliation, 'id'>) => void
-  
+
   // Category methods
   addCategory: (type: 'expense' | 'income' | 'payment', category: string) => void
   deleteCategory: (type: 'expense' | 'income' | 'payment', category: string) => void
@@ -233,6 +234,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
     }
+    // Sync to backend and Google Sheets
+    accountApi.createBankAccount(newAccount).catch(err => console.error('Failed to sync bank account:', err))
   }
 
   const updateBankAccount = (account: BankAccount) => {
@@ -242,6 +245,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
     }
+    // Sync to backend and Google Sheets
+    accountApi.updateBankAccount(account.id, account).catch(err => console.error('Failed to sync bank account:', err))
   }
 
   const deleteBankAccount = (id: string) => {
@@ -255,6 +260,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
+    // Sync to backend and Google Sheets
+    accountApi.deleteBankAccount(id).catch(err => console.error('Failed to sync bank account deletion:', err))
   }
 
   // Credit Card methods
@@ -272,6 +279,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
     }
+    // Sync to backend and Google Sheets
+    accountApi.createCreditCard(newCard).catch(err => console.error('Failed to sync credit card:', err))
   }
 
   const updateCreditCard = (card: CreditCard) => {
@@ -280,12 +289,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       ...card,
       availableCredit: card.limit - card.currentBalance
     }
-    
+
     const updatedCards = creditCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
     setCreditCards(updatedCards)
     if (username) {
       localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
     }
+    // Sync to backend and Google Sheets
+    accountApi.updateCreditCard(updatedCard.id, updatedCard).catch(err => console.error('Failed to sync credit card:', err))
   }
 
   const deleteCreditCard = (id: string) => {
@@ -297,6 +308,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
+    // Sync to backend and Google Sheets
+    accountApi.deleteCreditCard(id).catch(err => console.error('Failed to sync credit card deletion:', err))
   }
 
   // Loan methods
@@ -314,6 +327,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
     }
+    // Sync to backend and Google Sheets
+    accountApi.createLoan(newLoan).catch(err => console.error('Failed to sync loan:', err))
   }
 
   const updateLoan = (loan: Loan) => {
@@ -322,6 +337,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
     }
+    // Sync to backend and Google Sheets
+    accountApi.updateLoan(loan.id, loan).catch(err => console.error('Failed to sync loan:', err))
   }
 
   const deleteLoan = (id: string) => {
@@ -333,6 +350,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
+    // Sync to backend and Google Sheets
+    accountApi.deleteLoan(id).catch(err => console.error('Failed to sync loan deletion:', err))
   }
 
   // Transaction methods
@@ -346,6 +365,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
+    // Sync to backend and Google Sheets
+    accountApi.createTransaction(newTransaction).catch(err => console.error('Failed to sync transaction:', err))
 
     // Update account balances
     if (transaction.accountType === 'bank') {
@@ -376,7 +397,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
             currentBalance: newBalance,
             availableCredit: newAvailableCredit,
           })
-          
+
           // Reconciliation: Deduct from linked bank account
           if (transaction.linkedAccountId) {
             const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
@@ -397,7 +418,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           remainingAmount: newRemaining,
           remainingMonths: newRemainingMonths,
         })
-        
+
         // Reconciliation: Deduct from linked bank account
         if (transaction.linkedAccountId) {
           const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
@@ -408,11 +429,11 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
-    
+
     // Create reconciliation record for credit card payments and loan payments
-    if (transaction.linkedAccountId && 
-        ((transaction.accountType === 'creditCard' && transaction.type === 'payment') ||
-         (transaction.accountType === 'loan' && transaction.type === 'payment'))) {
+    if (transaction.linkedAccountId &&
+      ((transaction.accountType === 'creditCard' && transaction.type === 'payment') ||
+        (transaction.accountType === 'loan' && transaction.type === 'payment'))) {
       const reconciliation: Omit<AccountReconciliation, 'id'> = {
         fromAccountId: transaction.linkedAccountId,
         fromAccountType: 'bank',
@@ -434,13 +455,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const oldTransaction = transactions.find((t) => t.id === transaction.id)
     const updatedTransactions = transactions.map((t) => (t.id === transaction.id ? transaction : t))
     setTransactions(updatedTransactions)
-    
+
     // Handle bank account balance adjustments when transaction is updated
     if (transaction.accountType === 'bank') {
       const account = bankAccounts.find((a) => a.id === transaction.accountId)
       if (account) {
         let newBalance = account.balance
-        
+
         // If there was an old transaction, reverse its effect first
         if (oldTransaction) {
           if (oldTransaction.type === 'income') {
@@ -449,24 +470,24 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
             newBalance = account.balance + oldTransaction.amount
           }
         }
-        
+
         // Then apply the new transaction effect
         if (transaction.type === 'income') {
           newBalance = newBalance + transaction.amount
         } else {
           newBalance = newBalance - transaction.amount
         }
-        
+
         updateBankAccount({ ...account, balance: newBalance })
       }
     }
-    
+
     // Handle credit card balance adjustments when transaction is updated
     else if (transaction.accountType === 'creditCard') {
       const card = creditCards.find((c) => c.id === transaction.accountId)
       if (card) {
         let newBalance = card.currentBalance
-        
+
         // If there was an old transaction, reverse its effect first
         if (oldTransaction) {
           if (oldTransaction.type === 'expense') {
@@ -475,14 +496,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
             newBalance = card.currentBalance + oldTransaction.amount
           }
         }
-        
+
         // Then apply the new transaction effect
         if (transaction.type === 'expense') {
           newBalance = newBalance + transaction.amount
         } else if (transaction.type === 'payment') {
           newBalance = Math.max(0, newBalance - transaction.amount)
         }
-        
+
         const newAvailableCredit = card.limit - newBalance
         updateCreditCard({
           ...card,
@@ -491,39 +512,39 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
       }
     }
-    
+
     // Handle loan balance adjustments when transaction is updated
     else if (transaction.accountType === 'loan' && transaction.type === 'payment') {
       const loan = loans.find((l) => l.id === transaction.accountId)
       if (loan) {
         let newRemaining = loan.remainingAmount
-        
+
         // If there was an old transaction, reverse its effect first
         if (oldTransaction && oldTransaction.type === 'payment') {
           newRemaining = loan.remainingAmount + oldTransaction.amount
         }
-        
+
         // Then apply the new transaction effect
         newRemaining = Math.max(0, newRemaining - transaction.amount)
         const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
-        
+
         updateLoan({
           ...loan,
           remainingAmount: newRemaining,
           remainingMonths: newRemainingMonths,
         })
-        
+
         // Reconciliation: Adjust linked bank account
         if (transaction.linkedAccountId) {
           const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
           if (linkedAccount) {
             let newBankBalance = linkedAccount.balance
-            
+
             // Reverse old transaction effect
             if (oldTransaction && oldTransaction.linkedAccountId === transaction.linkedAccountId) {
               newBankBalance = linkedAccount.balance + oldTransaction.amount
             }
-            
+
             // Apply new transaction effect
             newBankBalance = newBankBalance - transaction.amount
             updateBankAccount({ ...linkedAccount, balance: newBankBalance })
@@ -531,7 +552,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
-    
+
     // Immediately save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
@@ -542,37 +563,37 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const transactionToDelete = transactions.find((t) => t.id === id)
     const updatedTransactions = transactions.filter((t) => t.id !== id)
     setTransactions(updatedTransactions)
-    
+
     // If this was a bank account transaction, recalculate the account balance
     if (transactionToDelete && transactionToDelete.accountType === 'bank') {
       const account = bankAccounts.find((a) => a.id === transactionToDelete.accountId)
       if (account) {
         let newBalance = account.balance
-        
+
         // Reverse the transaction effect
         if (transactionToDelete.type === 'income') {
           newBalance = account.balance - transactionToDelete.amount
         } else {
           newBalance = account.balance + transactionToDelete.amount
         }
-        
+
         updateBankAccount({ ...account, balance: newBalance })
       }
     }
-    
+
     // If this was a credit card transaction, recalculate the card balance
     else if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
       const card = creditCards.find((c) => c.id === transactionToDelete.accountId)
       if (card) {
         let newBalance = card.currentBalance
-        
+
         // Reverse the transaction effect
         if (transactionToDelete.type === 'expense') {
           newBalance = Math.max(0, card.currentBalance - transactionToDelete.amount)
         } else if (transactionToDelete.type === 'payment') {
           newBalance = card.currentBalance + transactionToDelete.amount
         }
-        
+
         const newAvailableCredit = card.limit - newBalance
         updateCreditCard({
           ...card,
@@ -581,23 +602,23 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         })
       }
     }
-    
+
     // If this was a loan payment transaction, recalculate the loan balance
     else if (transactionToDelete && transactionToDelete.accountType === 'loan' && transactionToDelete.type === 'payment') {
       const loan = loans.find((l) => l.id === transactionToDelete.accountId)
       if (loan) {
         let newRemaining = loan.remainingAmount
-        
+
         // Reverse the transaction effect
         newRemaining = loan.remainingAmount + transactionToDelete.amount
         const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
-        
+
         updateLoan({
           ...loan,
           remainingAmount: newRemaining,
           remainingMonths: newRemainingMonths,
         })
-        
+
         // Reconciliation: Refund to linked bank account
         if (transactionToDelete.linkedAccountId) {
           const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
@@ -608,7 +629,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
-    
+
     // Immediately save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
@@ -627,6 +648,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('budgets', username), JSON.stringify(updatedBudgets))
     }
+    // Sync to backend and Google Sheets
+    accountApi.createBudget(newBudget).catch(err => console.error('Failed to sync budget:', err))
   }
 
   const updateBudget = (budget: Budget) => {
@@ -635,6 +658,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('budgets', username), JSON.stringify(updatedBudgets))
     }
+    // Sync to backend and Google Sheets
+    accountApi.updateBudget(budget.id, budget).catch(err => console.error('Failed to sync budget:', err))
   }
 
   const deleteBudget = (id: string) => {
@@ -643,6 +668,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('budgets', username), JSON.stringify(updatedBudgets))
     }
+    // Sync to backend and Google Sheets
+    accountApi.deleteBudget(id).catch(err => console.error('Failed to sync budget deletion:', err))
   }
 
   // Savings methods

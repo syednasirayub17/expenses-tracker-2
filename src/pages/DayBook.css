@@ -1,0 +1,44 @@
+.daybook-page {
+  padding: 28px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.daybook-list {
+  margin-top: 12px;
+}
+
+.daybook-page h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: var(--accent-primary);
+}
+
+.daybook-page input[type="text"],
+.daybook-page textarea {
+  border: 1px solid rgba(0,0,0,0.12);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.daybook-page input { width: 320px; }
+
+.daybook-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  background: var(--card-bg, #fff);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.daybook-item button {
+  margin-left: auto;
+  padding: 6px 10px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}

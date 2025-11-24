@@ -7,7 +7,7 @@ const router = express.Router();
 // Middleware to check if user is admin
 const adminOnly = async (req: any, res: any, next: any) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.userId);
 
         if (!user || user.role !== 'admin') {
             return res.status(403).json({ message: 'Access denied. Admin only.' });
@@ -87,7 +87,7 @@ router.delete('/users/:id', protect, adminOnly, async (req: any, res) => {
         }
 
         // Don't allow deleting yourself
-        if ((user._id as any).toString() === req.user.id) {
+        if ((user._id as any).toString() === req.userId) {
             return res.status(400).json({ message: 'Cannot delete your own account' });
         }
 

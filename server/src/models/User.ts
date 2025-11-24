@@ -6,6 +6,8 @@ export interface IUser extends Document {
   password: string;
   fullName?: string;
   phone?: string;
+  role: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +40,15 @@ const userSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {

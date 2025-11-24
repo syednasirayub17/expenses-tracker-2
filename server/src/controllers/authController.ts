@@ -39,6 +39,7 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
         email: user.email,
         fullName: user.fullName,
         phone: user.phone,
+        role: user.role,
         token: generateToken((user._id as any).toString()),
       });
     }
@@ -52,10 +53,15 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
 // @access  Public
 export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
 
-    // Check for user
-    const user = await User.findOne({ username });
+    // Check for user by username or email
+    const user = await User.findOne({
+      $or: [
+        { username: username || email },
+        { email: email || username }
+      ]
+    });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
@@ -64,6 +70,7 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
         email: user.email,
         fullName: user.fullName,
         phone: user.phone,
+        role: user.role,
         token: generateToken((user._id as any).toString()),
       });
     } else {

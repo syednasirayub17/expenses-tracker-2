@@ -30,32 +30,58 @@ const AdminDashboard = () => {
             return
         }
 
-        // Load users from localStorage (in production, fetch from API)
+        // Load users from API
         loadUsers()
-        calculateStats()
+        loadStats()
     }, [navigate])
 
-    const loadUsers = () => {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-        const usersWithStatus = storedUsers.map((user: any) => ({
-            ...user,
-            isActive: true,
-            createdAt: user.createdAt || new Date().toISOString()
-        }))
-        setUsers(usersWithStatus)
+    const loadUsers = async () => {
+        try {
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}')
+            const token = adminUser.token || localStorage.getItem('token')
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setUsers(data)
+            } else {
+                console.error('Failed to load users')
+            }
+        } catch (error) {
+            console.error('Error loading users:', error)
+        }
     }
 
-    const calculateStats = () => {
-        const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-        const allTransactions = JSON.parse(localStorage.getItem('transactions') || '[]')
-        const allAccounts = JSON.parse(localStorage.getItem('bankAccounts') || '[]')
+    const loadStats = async () => {
+        try {
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}')
+            const token = adminUser.token || localStorage.getItem('token')
 
-        setStats({
-            totalUsers: storedUsers.length,
-            activeUsers: storedUsers.length,
-            totalTransactions: allTransactions.length,
-            totalAccounts: allAccounts.length
-        })
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/stats`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setStats({
+                    totalUsers: data.totalUsers,
+                    activeUsers: data.activeUsers,
+                    totalTransactions: data.totalTransactions,
+                    totalAccounts: data.totalAccounts
+                })
+            } else {
+                console.error('Failed to load stats')
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error)
+        }
     }
 
     const handleLogout = () => {
@@ -64,12 +90,31 @@ const AdminDashboard = () => {
         navigate('/admin/login')
     }
 
-    const handleDeleteUser = (userId: string) => {
+    const handleDeleteUser = async (userId: string) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
-            const updatedUsers = users.filter(u => u.id !== userId)
-            setUsers(updatedUsers)
-            localStorage.setItem('users', JSON.stringify(updatedUsers))
-            calculateStats()
+            try {
+                const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}')
+                const token = adminUser.token || localStorage.getItem('token')
+
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+
+                if (response.ok) {
+                    // Reload users after deletion
+                    loadUsers()
+                    loadStats()
+                } else {
+                    const error = await response.json()
+                    alert(error.message || 'Failed to delete user')
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error)
+                alert('Failed to delete user')
+            }
         }
     }
 

@@ -15,26 +15,36 @@ const AdminLogin = () => {
         setLoading(true)
 
         try {
-            // Admin accounts (supports both email and username)
-            const adminAccounts = [
-                { email: 'admin@expenses.com', username: 'admin', password: 'admin123' },
-                { email: 'nasir@expenses.com', username: 'nasir', password: 'Jio@#$2025' }
-            ]
+            // Try API login first
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email.includes('@') ? email : `${email}@expenses.com`,
+                    password
+                })
+            })
 
-            // Check if login matches any admin account (by email or username)
-            const admin = adminAccounts.find(acc =>
-                (acc.email === email || acc.username === email) && acc.password === password
-            )
+            if (response.ok) {
+                const data = await response.json()
 
-            if (admin) {
-                // Store admin session
-                localStorage.setItem('adminUser', JSON.stringify({
-                    email: admin.email,
-                    username: admin.username,
-                    role: 'admin'
-                }))
-                localStorage.setItem('isAdminAuthenticated', 'true')
-                navigate('/admin/dashboard')
+                // Check if user is admin
+                if (data.role === 'admin' || email === 'nasir' || email === 'admin') {
+                    // Store admin session with token
+                    localStorage.setItem('adminUser', JSON.stringify({
+                        email: data.email,
+                        username: data.username || email,
+                        role: 'admin',
+                        token: data.token
+                    }))
+                    localStorage.setItem('isAdminAuthenticated', 'true')
+                    localStorage.setItem('token', data.token)
+                    navigate('/admin/dashboard')
+                } else {
+                    setError('Access denied. Admin privileges required.')
+                }
             } else {
                 setError('Invalid admin credentials')
             }

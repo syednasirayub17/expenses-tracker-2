@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './AdminDashboard.css'
 
 interface User {
-    id: string
+    _id: string
     username: string
     email: string
     createdAt: string
@@ -212,7 +212,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 ) : (
                                     filteredUsers.map((user) => (
-                                        <tr key={user.id}>
+                                        <tr key={user._id}>
                                             <td className="user-name">{user.username}</td>
                                             <td>{user.email}</td>
                                             <td>{new Date(user.createdAt).toLocaleDateString()}</td>
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
                                                     </button>
                                                     <button
                                                         className="btn-delete"
-                                                        onClick={() => handleDeleteUser(user.id)}
+                                                        onClick={() => handleDeleteUser(user._id)}
                                                         title="Delete User"
                                                     >
                                                         🗑️

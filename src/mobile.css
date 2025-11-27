@@ -8,10 +8,154 @@
     --mobile-touch-target: 48px;
     --mobile-spacing: 16px;
     --mobile-border-radius: 12px;
+
+    /* Tablet variables for 550dp */
+    --tablet-nav-height: 64px;
+    --tablet-header-height: 64px;
+    --tablet-fab-size: 64px;
+    --tablet-touch-target: 52px;
+    --tablet-spacing: 20px;
+    --tablet-border-radius: 16px;
 }
 
-/* Mobile-optimized body */
-@media (max-width: 768px) {
+/* Tablet breakpoint for 550dp+ screens */
+@media (min-width: 550px) and (max-width: 900px) {
+    body {
+        font-size: 18px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Larger touch targets for tablets */
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        min-height: var(--tablet-touch-target);
+    }
+
+    /* Dashboard grid - 2 columns */
+    .dashboard-stats,
+    .admin-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--tablet-spacing);
+        padding: var(--tablet-spacing);
+    }
+
+    /* Card styles for tablets */
+    .card,
+    .admin-stat-card,
+    .stat-card {
+        border-radius: var(--tablet-border-radius);
+        padding: var(--tablet-spacing);
+        margin: var(--tablet-spacing);
+    }
+
+    /* Form inputs */
+    input,
+    select,
+    textarea {
+        font-size: 18px !important;
+        border-radius: 12px;
+        padding: 16px 20px;
+        max-width: 80%;
+        margin: 0 auto;
+    }
+
+    /* Buttons */
+    button {
+        border-radius: 12px;
+        padding: 16px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        min-width: 120px;
+    }
+
+    /* Bottom navigation for tablets */
+    .bottom-nav {
+        height: var(--tablet-nav-height);
+        padding: 0 var(--tablet-spacing);
+    }
+
+    .bottom-nav-icon {
+        font-size: 28px;
+        margin-bottom: 6px;
+    }
+
+    .bottom-nav-label {
+        font-size: 14px;
+    }
+
+    /* FAB for tablets */
+    .fab {
+        width: var(--tablet-fab-size);
+        height: var(--tablet-fab-size);
+        bottom: calc(var(--tablet-nav-height) + 20px);
+        right: 20px;
+        font-size: 28px;
+    }
+
+    /* Mobile header for tablets */
+    .mobile-header {
+        height: var(--tablet-header-height);
+        padding: 0 var(--tablet-spacing);
+    }
+
+    .mobile-header-title {
+        font-size: 24px;
+    }
+
+    /* Content padding */
+    .mobile-content {
+        padding: var(--tablet-spacing);
+        padding-bottom: calc(var(--tablet-nav-height) + 20px);
+    }
+
+    /* Transaction list items */
+    .transaction-item,
+    .account-item {
+        padding: var(--tablet-spacing);
+        margin: 12px var(--tablet-spacing);
+        border-radius: var(--tablet-border-radius);
+    }
+
+    /* Typography */
+    h1 {
+        font-size: 32px;
+    }
+
+    h2 {
+        font-size: 28px;
+    }
+
+    h3 {
+        font-size: 24px;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.6;
+    }
+
+    /* Stat values */
+    .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    /* Empty state */
+    .empty-state-icon {
+        font-size: 80px;
+    }
+
+    .empty-state-text {
+        font-size: 18px;
+    }
+}
+
+/* Mobile breakpoint for phones */
+@media (max-width: 549px) {
     body {
         font-size: 16px;
         /* Prevents zoom on input focus */

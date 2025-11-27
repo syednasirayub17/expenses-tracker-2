@@ -17,9 +17,18 @@ class GoogleSheetsService {
 
     private async initializeAuth() {
         try {
-            const credentialsPath = path.join(__dirname, '../../credentials.json');
+            // Check if we have environment variables for Google Sheets
+            if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+                console.warn('Google Sheets: Missing credentials. Set GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY environment variables.');
+                return;
+            }
+
+            // Use environment variables for authentication
             const auth = new google.auth.GoogleAuth({
-                keyFile: credentialsPath,
+                credentials: {
+                    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Handle escaped newlines
+                },
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             });
 

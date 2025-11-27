@@ -140,68 +140,71 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return
     }
 
-    // Load user-specific data
-    try {
-      const userBankAccounts = loadFromStorage<BankAccount[]>('bankAccounts', [], username)
-      const userCreditCards = loadFromStorage<CreditCard[]>('creditCards', [], username)
-      const userLoans = loadFromStorage<Loan[]>('loans', [], username)
-      const userTransactions = loadFromStorage<Transaction[]>('transactions', [], username)
-      const userBudgets = loadFromStorage<Budget[]>('budgets', [], username)
-      const userSavings = loadFromStorage<Savings[]>('savings', [], username)
-      const userReconciliations = loadFromStorage<AccountReconciliation[]>('reconciliations', [], username)
-      const userCategories = loadFromStorage<{
-        expense: string[]
-        income: string[]
-        payment: string[]
-      }>('categories', {
-        expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other'],
-        income: ['Salary', 'Business', 'Investment', 'Gift', 'Other'],
-        payment: ['Credit Card Payment', 'Loan EMI', 'Other'],
-      }, username)
+    // Load user-specific data from API
+    const loadDataFromAPI = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          console.warn('No auth token found, skipping API data load')
+          return
+        }
 
-      setBankAccounts(userBankAccounts)
-      setCreditCards(userCreditCards)
-      setLoans(userLoans)
-      setTransactions(userTransactions)
-      setBudgets(userBudgets)
-      setSavings(userSavings)
-      setReconciliations(userReconciliations)
-      setCategories(userCategories)
-    } catch (error) {
-      console.error('Error loading user data from localStorage:', error)
+        // Load all data from API in parallel
+        const [
+          bankAccountsData,
+          creditCardsData,
+          loansData,
+          transactionsData,
+          budgetsData
+        ] = await Promise.all([
+          accountApi.getBankAccounts().catch(() => []),
+          accountApi.getCreditCards().catch(() => []),
+          accountApi.getLoans().catch(() => []),
+          accountApi.getTransactions().catch(() => []),
+          accountApi.getBudgets().catch(() => [])
+        ])
+
+        setBankAccounts(bankAccountsData)
+        setCreditCards(creditCardsData)
+        setLoans(loansData)
+        setTransactions(transactionsData)
+        setBudgets(budgetsData)
+
+        console.log('Data loaded from API:', {
+          bankAccounts: bankAccountsData.length,
+          creditCards: creditCardsData.length,
+          loans: loansData.length,
+          transactions: transactionsData.length,
+          budgets: budgetsData.length
+        })
+      } catch (error) {
+        console.error('Error loading user data from API:', error)
+        // Fallback to localStorage if API fails
+        try {
+          const userBankAccounts = loadFromStorage<BankAccount[]>('bankAccounts', [], username)
+          const userCreditCards = loadFromStorage<CreditCard[]>('creditCards', [], username)
+          const userLoans = loadFromStorage<Loan[]>('loans', [], username)
+          const userTransactions = loadFromStorage<Transaction[]>('transactions', [], username)
+          const userBudgets = loadFromStorage<Budget[]>('budgets', [], username)
+
+          setBankAccounts(userBankAccounts)
+          setCreditCards(userCreditCards)
+          setLoans(userLoans)
+          setTransactions(userTransactions)
+          setBudgets(userBudgets)
+
+          console.log('Loaded from localStorage as fallback')
+        } catch (fallbackError) {
+          console.error('Error loading from localStorage fallback:', fallbackError)
+        }
+      }
     }
+
+    loadDataFromAPI()
   }, [username])
 
-  // Save to localStorage whenever data changes (user-specific)
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(bankAccounts))
-    }
-  }, [bankAccounts, username])
-
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(creditCards))
-    }
-  }, [creditCards, username])
-
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(getUserKey('loans', username), JSON.stringify(loans))
-    }
-  }, [loans, username])
-
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(transactions))
-    }
-  }, [transactions, username])
-
-  useEffect(() => {
-    if (username) {
-      localStorage.setItem(getUserKey('budgets', username), JSON.stringify(budgets))
-    }
-  }, [budgets, username])
+  // Note: Data is now saved to API, not localStorage
+  // localStorage is only used as fallback for offline support
 
   useEffect(() => {
     if (username) {
@@ -228,40 +231,37 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString(),
     }
-    const updatedAccounts = [...bankAccounts, newAccount]
-    setBankAccounts(updatedAccounts)
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.createBankAccount(newAccount).catch(err => console.error('Failed to sync bank account:', err))
+    setBankAccounts([...bankAccounts, newAccount])
+    // Save to backend API
+    accountApi.createBankAccount(newAccount).catch(err => {
+      console.error('Failed to create bank account:', err)
+      // Rollback on error
+      setBankAccounts(bankAccounts)
+    })
   }
 
   const updateBankAccount = (account: BankAccount) => {
     const updatedAccounts = bankAccounts.map((a) => (a.id === account.id ? account : a))
     setBankAccounts(updatedAccounts)
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.updateBankAccount(account.id, account).catch(err => console.error('Failed to sync bank account:', err))
+    // Save to backend API
+    accountApi.updateBankAccount(account.id, account).catch(err => {
+      console.error('Failed to update bank account:', err)
+      // Rollback on error
+      setBankAccounts(bankAccounts)
+    })
   }
 
   const deleteBankAccount = (id: string) => {
-    const updatedAccounts = bankAccounts.filter((a) => a.id !== id)
-    setBankAccounts(updatedAccounts)
+    setBankAccounts(bankAccounts.filter((a) => a.id !== id))
     // Also delete related transactions
-    const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank'))
-    setTransactions(updatedTransactions)
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.deleteBankAccount(id).catch(err => console.error('Failed to sync bank account deletion:', err))
+    setTransactions(transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank')))
+    // Save to backend API
+    accountApi.deleteBankAccount(id).catch(err => {
+      console.error('Failed to delete bank account:', err)
+      // Rollback on error
+      setBankAccounts(bankAccounts)
+      setTransactions(transactions)
+    })
   }
 
   // Credit Card methods

@@ -498,6 +498,64 @@ export default config;
 
 ---
 
+## 💾 MongoDB Backup
+
+> [!WARNING]
+> MongoDB Atlas M0 (Free Tier) does **NOT** include automatic backups!
+
+### Automated Daily Backup (Configured ✅)
+
+Your database is automatically backed up **every night at 10:00 PM**.
+
+**Backup includes ALL data from:**
+- ✅ Android mobile app
+- ✅ Vercel web app
+- ✅ All users and transactions
+
+**Location:** `server/backups/`  
+**Retention:** Last 7 days (older backups auto-deleted)
+
+### Manual Backup
+
+Create a backup anytime:
+```bash
+cd server
+npm run backup
+```
+
+### View Backups
+
+```bash
+# List all backups
+ls -lh server/backups/
+
+# View backup logs
+tail -f /tmp/mongodb-backup.log
+```
+
+### Restore from Backup
+
+```bash
+cd server
+
+# List available backups
+npm run restore
+
+# Restore specific backup
+npm run restore backup-2025-11-29T14-53-10
+```
+
+### Backup to Google Drive (Manual)
+
+For cloud storage, manually upload important backups:
+
+1. Backups are in: `server/backups/`
+2. Upload ZIP files to: https://drive.google.com/drive/folders/1l8X3mb5ZGTY0ELIFgMblB0tg5TdPpG5A
+
+**📖 Full Documentation**: See [BACKUP_GUIDE.md](./BACKUP_GUIDE.md) for complete instructions.
+
+---
+
 ## 🎯 Future Enhancements
 
 - [ ] Offline mode for mobile app
@@ -508,7 +566,7 @@ export default config;
 - [ ] Multi-currency support
 - [ ] Dark mode
 - [ ] Biometric authentication
-- [ ] Google Drive backup
+- [x] MongoDB backup solution
 - [ ] Analytics dashboard
 
 ---

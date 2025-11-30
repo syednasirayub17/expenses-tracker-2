@@ -129,9 +129,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try {
         const token = localStorage.getItem('token')
         if (!token) {
-          console.warn('No auth token found, skipping API data load')
+          console.warn('No auth token found, loading from localStorage only')
+          // Load from localStorage when no token
+          loadFromLocalStorage()
           return
         }
+
+        console.log('Loading data from API...')
 
         // Load all data from API in parallel
         const [
@@ -141,20 +145,30 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           transactionsData,
           budgetsData
         ] = await Promise.all([
-          accountApi.getBankAccounts().catch(() => []),
-          accountApi.getCreditCards().catch(() => []),
-          accountApi.getLoans().catch(() => []),
-          accountApi.getTransactions().catch(() => []),
-          accountApi.getBudgets().catch(() => [])
+          accountApi.getBankAccounts(),
+          accountApi.getCreditCards(),
+          accountApi.getLoans(),
+          accountApi.getTransactions(),
+          accountApi.getBudgets()
         ])
 
+        // Set state
         setBankAccounts(bankAccountsData)
         setCreditCards(creditCardsData)
         setLoans(loansData)
         setTransactions(transactionsData)
         setBudgets(budgetsData)
 
-        console.log('Data loaded from API:', {
+        // CRITICAL: Save API data to localStorage for offline access
+        if (username) {
+          localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(bankAccountsData))
+          localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(creditCardsData))
+          localStorage.setItem(getUserKey('loans', username), JSON.stringify(loansData))
+          localStorage.setItem(getUserKey('transactions', username), JSON.stringify(transactionsData))
+          localStorage.setItem(getUserKey('budgets', username), JSON.stringify(budgetsData))
+        }
+
+        console.log('✓ Data loaded from API and saved to localStorage:', {
           bankAccounts: bankAccountsData.length,
           creditCards: creditCardsData.length,
           loans: loansData.length,
@@ -162,104 +176,111 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           budgets: budgetsData.length
         })
       } catch (error) {
-        console.error('Error loading user data from API:', error)
-        // Fallback to localStorage if API fails
-        if (username) {
-          // Load data from localStorage
-          const storedBankAccounts = localStorage.getItem(getUserKey('bankAccounts', username))
-          const storedCreditCards = localStorage.getItem(getUserKey('creditCards', username))
-          const storedLoans = localStorage.getItem(getUserKey('loans', username))
-          const storedTransactions = localStorage.getItem(getUserKey('transactions', username))
-          const storedBudgets = localStorage.getItem(getUserKey('budgets', username))
-          const storedSavings = localStorage.getItem(getUserKey('savings', username))
-          const storedCategories = localStorage.getItem(getUserKey('categories', username))
+        console.error('❌ API failed, loading from localStorage:', error)
+        // Only load from localStorage if API actually failed
+        loadFromLocalStorage()
+      }
+    }
 
-          // Validate and clean bank accounts
-          if (storedBankAccounts) {
-            try {
-              const accounts = JSON.parse(storedBankAccounts)
-              // Filter out corrupted accounts (missing required fields)
-              const validAccounts = accounts.filter((acc: any) =>
-                acc && acc.id && acc.name && typeof acc.balance === 'number'
-              )
+    // Helper function to load from localStorage
+    const loadFromLocalStorage = () => {
+      if (!username) return
 
-              if (validAccounts.length !== accounts.length) {
-                console.warn(`Removed ${accounts.length - validAccounts.length} corrupted bank accounts`)
-                localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(validAccounts))
-              }
+      console.log('Loading data from localStorage...')
 
-              setBankAccounts(validAccounts)
-            } catch (err) {
-              console.error('Error loading bank accounts:', err)
-              setBankAccounts([])
-            }
+      const storedBankAccounts = localStorage.getItem(getUserKey('bankAccounts', username))
+      const storedCreditCards = localStorage.getItem(getUserKey('creditCards', username))
+      const storedLoans = localStorage.getItem(getUserKey('loans', username))
+      const storedTransactions = localStorage.getItem(getUserKey('transactions', username))
+      const storedBudgets = localStorage.getItem(getUserKey('budgets', username))
+      const storedSavings = localStorage.getItem(getUserKey('savings', username))
+      const storedCategories = localStorage.getItem(getUserKey('categories', username))
+
+      // Validate and clean bank accounts
+      if (storedBankAccounts) {
+        try {
+          const accounts = JSON.parse(storedBankAccounts)
+          const validAccounts = accounts.filter((acc: any) =>
+            acc && acc.id && acc.name && typeof acc.balance === 'number'
+          )
+
+          if (validAccounts.length !== accounts.length) {
+            console.warn(`Removed ${accounts.length - validAccounts.length} corrupted bank accounts`)
+            localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(validAccounts))
           }
 
-          if (storedCreditCards) {
-            try {
-              const cards = JSON.parse(storedCreditCards)
-              const validCards = cards.filter((card: any) =>
-                card && card.id && card.name && typeof card.limit === 'number'
-              )
-
-              if (validCards.length !== cards.length) {
-                console.warn(`Removed ${cards.length - validCards.length} corrupted credit cards`)
-                localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(validCards))
-              }
-
-              setCreditCards(validCards)
-            } catch (err) {
-              console.error('Error loading credit cards:', err)
-              setCreditCards([])
-            }
-          }
-
-          if (storedLoans) {
-            try {
-              setLoans(JSON.parse(storedLoans))
-            } catch (err) {
-              console.error('Error loading loans:', err)
-              setLoans([])
-            }
-          }
-          if (storedTransactions) {
-            try {
-              setTransactions(JSON.parse(storedTransactions))
-            } catch (err) {
-              console.error('Error loading transactions:', err)
-              setTransactions([])
-            }
-          }
-          if (storedBudgets) {
-            try {
-              setBudgets(JSON.parse(storedBudgets))
-            } catch (err) {
-              console.error('Error loading budgets:', err)
-              setBudgets([])
-            }
-          }
-          if (storedSavings) {
-            try {
-              setSavings(JSON.parse(storedSavings))
-            } catch (err) {
-              console.error('Error loading savings:', err)
-              setSavings([])
-            }
-          }
-          if (storedCategories) {
-            try {
-              setCategories(JSON.parse(storedCategories))
-            } catch (err) {
-              console.error('Error loading categories:', err)
-              setCategories({
-                expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other'],
-                income: ['Salary', 'Business', 'Investment', 'Gift', 'Other'],
-                payment: ['Credit Card Payment', 'Loan EMI', 'Other'],
-              })
-            }
-          }
+          setBankAccounts(validAccounts)
+        } catch (err) {
+          console.error('Error loading bank accounts:', err)
+          setBankAccounts([])
         }
       }
+
+      if (storedCreditCards) {
+        try {
+          const cards = JSON.parse(storedCreditCards)
+          const validCards = cards.filter((card: any) =>
+            card && card.id && card.name && typeof card.limit === 'number'
+          )
+
+          if (validCards.length !== cards.length) {
+            console.warn(`Removed ${cards.length - validCards.length} corrupted credit cards`)
+            localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(validCards))
+          }
+
+          setCreditCards(validCards)
+        } catch (err) {
+          console.error('Error loading credit cards:', err)
+          setCreditCards([])
+        }
+      }
+
+      if (storedLoans) {
+        try {
+          setLoans(JSON.parse(storedLoans))
+        } catch (err) {
+          console.error('Error loading loans:', err)
+          setLoans([])
+        }
+      }
+      if (storedTransactions) {
+        try {
+          setTransactions(JSON.parse(storedTransactions))
+        } catch (err) {
+          console.error('Error loading transactions:', err)
+          setTransactions([])
+        }
+      }
+      if (storedBudgets) {
+        try {
+          setBudgets(JSON.parse(storedBudgets))
+        } catch (err) {
+          console.error('Error loading budgets:', err)
+          setBudgets([])
+        }
+      }
+      if (storedSavings) {
+        try {
+          setSavings(JSON.parse(storedSavings))
+        } catch (err) {
+          console.error('Error loading savings:', err)
+          setSavings([])
+        }
+      }
+      if (storedCategories) {
+        try {
+          setCategories(JSON.parse(storedCategories))
+        } catch (err) {
+          console.error('Error loading categories:', err)
+          setCategories({
+            expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other'],
+            income: ['Salary', 'Business', 'Investment', 'Gift', 'Other'],
+            payment: ['Credit Card Payment', 'Loan EMI', 'Other'],
+          })
+        }
+      }
+
+      console.log('✓ Data loaded from localStorage')
     }
 
     loadDataFromAPI()

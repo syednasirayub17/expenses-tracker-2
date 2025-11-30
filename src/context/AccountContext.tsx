@@ -314,6 +314,15 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   const deleteBankAccount = async (id: string) => {
+    // CRITICAL: Validate ID before deletion
+    if (!id || id === 'undefined' || id === 'null') {
+      console.error('❌ CRITICAL ERROR: Cannot delete account with invalid ID:', id)
+      alert('Error: Cannot delete account - invalid ID.\n\nThis account may be corrupted. Please refresh the page.')
+      return
+    }
+
+    console.log('Deleting account with ID:', id)
+
     // Immediately update UI and localStorage (local-first approach)
     const updatedAccounts = bankAccounts.filter((a) => a.id !== id)
     const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank'))

@@ -8,6 +8,9 @@ export interface IUser extends Document {
   phone?: string;
   role: string;
   isActive: boolean;
+  twoFactorEnabled: boolean;
+  twoFactorSecret?: string;
+  twoFactorBackupCodes?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +53,16 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: {
+      type: String,
+    },
+    twoFactorBackupCodes: [{
+      type: String
+    }],
   },
   {
     timestamps: true,

@@ -180,22 +180,96 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       } catch (error) {
         console.error('Error loading user data from API:', error)
         // Fallback to localStorage if API fails
-        try {
-          const userBankAccounts = loadFromStorage<BankAccount[]>('bankAccounts', [], username)
-          const userCreditCards = loadFromStorage<CreditCard[]>('creditCards', [], username)
-          const userLoans = loadFromStorage<Loan[]>('loans', [], username)
-          const userTransactions = loadFromStorage<Transaction[]>('transactions', [], username)
-          const userBudgets = loadFromStorage<Budget[]>('budgets', [], username)
+        if (username) {
+          // Load data from localStorage
+          const storedBankAccounts = localStorage.getItem(getUserKey('bankAccounts', username))
+          const storedCreditCards = localStorage.getItem(getUserKey('creditCards', username))
+          const storedLoans = localStorage.getItem(getUserKey('loans', username))
+          const storedTransactions = localStorage.getItem(getUserKey('transactions', username))
+          const storedBudgets = localStorage.getItem(getUserKey('budgets', username))
+          const storedSavings = localStorage.getItem(getUserKey('savings', username))
+          const storedCategories = localStorage.getItem(getUserKey('categories', username))
 
-          setBankAccounts(userBankAccounts)
-          setCreditCards(userCreditCards)
-          setLoans(userLoans)
-          setTransactions(userTransactions)
-          setBudgets(userBudgets)
+          // Validate and clean bank accounts
+          if (storedBankAccounts) {
+            try {
+              const accounts = JSON.parse(storedBankAccounts)
+              // Filter out corrupted accounts (missing required fields)
+              const validAccounts = accounts.filter((acc: any) =>
+                acc && acc.id && acc.name && typeof acc.balance === 'number'
+              )
 
-          console.log('Loaded from localStorage as fallback')
-        } catch (fallbackError) {
-          console.error('Error loading from localStorage fallback:', fallbackError)
+              if (validAccounts.length !== accounts.length) {
+                console.warn(`Removed ${accounts.length - validAccounts.length} corrupted bank accounts`)
+                localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(validAccounts))
+              }
+
+              setBankAccounts(validAccounts)
+            } catch (err) {
+              console.error('Error loading bank accounts:', err)
+              setBankAccounts([])
+            }
+          }
+
+          if (storedCreditCards) {
+            try {
+              const cards = JSON.parse(storedCreditCards)
+              const validCards = cards.filter((card: any) =>
+                card && card.id && card.name && typeof card.limit === 'number'
+              )
+
+              if (validCards.length !== cards.length) {
+                console.warn(`Removed ${cards.length - validCards.length} corrupted credit cards`)
+                localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(validCards))
+              }
+
+              setCreditCards(validCards)
+            } catch (err) {
+              console.error('Error loading credit cards:', err)
+              setCreditCards([])
+            }
+          }
+
+          if (storedLoans) {
+            try {
+              setLoans(JSON.parse(storedLoans))
+            } catch (err) {
+              console.error('Error loading loans:', err)
+              setLoans([])
+            }
+          }
+          if (storedTransactions) {
+            try {
+              setTransactions(JSON.parse(storedTransactions))
+            } catch (err) {
+              console.error('Error loading transactions:', err)
+              setTransactions([])
+            }
+          }
+          if (storedBudgets) {
+            try {
+              setBudgets(JSON.parse(storedBudgets))
+            } catch (err) {
+              console.error('Error loading budgets:', err)
+              setBudgets([])
+            }
+          }
+          if (storedSavings) {
+            try {
+              setSavings(JSON.parse(storedSavings))
+            } catch (err) {
+              console.error('Error loading savings:', err)
+              setSavings([])
+            }
+          }
+          if (storedCategories) {
+            try {
+              setCategories(JSON.parse(storedCategories))
+            } catch (err) {
+              console.error('Error loading categories:', err)
+              setCategories(defaultCategories) // Fallback to default categories
+            }
+          }
         }
       }
     }

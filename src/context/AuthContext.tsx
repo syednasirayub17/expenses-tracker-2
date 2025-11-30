@@ -10,7 +10,8 @@ interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (username: string, password: string) => Promise<boolean>
+  login: (username: string, password: string) => Promise<boolean | { requires2FA: boolean; userId: string }>
+  complete2FALogin: (userId: string) => Promise<boolean>
   logout: () => void
   register: (username: string, email: string, password: string) => Promise<boolean>
   updateProfile: (updates: Partial<User>) => Promise<boolean>
@@ -42,11 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean | { requires2FA: boolean; userId: string }> => {
     try {
-      // Try API first, fallback to localStorage
+      // Try API first
+      setLoading(true)
       const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
-      console.log('Using API URL:', API_URL)
 
       try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -57,6 +58,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (response.ok) {
           const data = await response.json()
+
+          // Check if 2FA is required
+          if (data.requires2FA) {
+            return { requires2FA: true, userId: data.userId }
+          }
+
+          // Normal login without 2FA
           const userData = {
             username: data.username,
             email: data.email,
@@ -91,6 +99,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false
     } catch (error) {
       console.error('Login error:', error)
+      return false
+    }
+  }
+
+  const complete2FALogin = async (userId: string): Promise<boolean> => {
+    try {
+      const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
+
+      // After successful 2FA verification, get the user data and token
+      const response = await fetch(`${API_URL}/api/auth/complete-2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const userData = {
+          username: data.username,
+          email: data.email,
+          fullName: data.fullName,
+          phone: data.phone
+        }
+        setUser(userData)
+        setIsAuthenticated(true)
+        localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('isAuthenticated', 'true')
+        localStorage.setItem('token', data.token)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Complete 2FA login error:', error)
       return false
     }
   }
@@ -227,7 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, updateProfile, changePassword, resetPassword }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, complete2FALogin, logout, register, updateProfile, changePassword, resetPassword }}>
       {children}
     </AuthContext.Provider>
   )

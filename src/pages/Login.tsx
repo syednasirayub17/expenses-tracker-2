@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import TwoFactorVerify from '../components/TwoFactorVerify'
 import './Login.css'
 
 const Login = () => {
@@ -12,7 +13,9 @@ const Login = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const { login, register, resetPassword } = useAuth()
+  const [show2FA, setShow2FA] = useState(false)
+  const [userId2FA, setUserId2FA] = useState('')
+  const { login, complete2FALogin, register, resetPassword } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,9 +57,13 @@ const Login = () => {
     }
 
     if (isLogin) {
-      const success = await login(username, password)
-      if (success) {
+      const result = await login(username, password)
+      if (result === true) {
         navigate('/dashboard')
+      } else if (typeof result === 'object' && result.requires2FA) {
+        // Show 2FA verification
+        setUserId2FA(result.userId)
+        setShow2FA(true)
       } else {
         setError('Invalid username or password')
       }
@@ -72,6 +79,26 @@ const Login = () => {
         setError('Username already exists')
       }
     }
+  }
+
+  const handle2FASuccess = async (userId: string) => {
+    const success = await complete2FALogin(userId)
+    if (success) {
+      navigate('/dashboard')
+    } else {
+      setError('2FA verification failed')
+      setShow2FA(false)
+    }
+  }
+
+  const handle2FACancel = () => {
+    setShow2FA(false)
+    setUserId2FA('')
+    setPassword('')
+  }
+
+  if (show2FA) {
+    return <TwoFactorVerify userId={userId2FA} onSuccess={handle2FASuccess} onCancel={handle2FACancel} />
   }
 
   return (

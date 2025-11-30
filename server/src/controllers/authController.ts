@@ -110,6 +110,41 @@ export const login = async (req: AuthRequest, res: Response): Promise<Response |
   }
 };
 
+// @desc    Complete 2FA login and get token
+// @route   POST /api/auth/complete-2fa
+// @access  Public
+export const complete2FA = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    // Log successful login after 2FA
+    await activityLoggerService.logActivity(
+      (user._id as any).toString(),
+      'login',
+      req,
+      true
+    );
+
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      role: user.role,
+      token: generateToken((user._id as any).toString()),
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get user profile
 // @route   GET /api/auth/profile
 // @access  Private

@@ -251,17 +251,38 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     })
   }
 
-  const deleteBankAccount = (id: string) => {
-    setBankAccounts(bankAccounts.filter((a) => a.id !== id))
-    // Also delete related transactions
-    setTransactions(transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank')))
-    // Save to backend API
-    accountApi.deleteBankAccount(id).catch(err => {
-      console.error('Failed to delete bank account:', err)
+  const deleteBankAccount = async (id: string) => {
+    // Store original state for rollback
+    const originalAccounts = [...bankAccounts]
+    const originalTransactions = [...transactions]
+
+    // Optimistically update UI
+    const updatedAccounts = bankAccounts.filter((a) => a.id !== id)
+    const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank'))
+
+    setBankAccounts(updatedAccounts)
+    setTransactions(updatedTransactions)
+
+    // Update localStorage immediately
+    if (username) {
+      localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
+      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+    }
+
+    // Try to delete from backend
+    try {
+      await accountApi.deleteBankAccount(id)
+    } catch (err) {
+      console.error('Failed to delete bank account from backend:', err)
       // Rollback on error
-      setBankAccounts(bankAccounts)
-      setTransactions(transactions)
-    })
+      setBankAccounts(originalAccounts)
+      setTransactions(originalTransactions)
+      if (username) {
+        localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(originalAccounts))
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(originalTransactions))
+      }
+      alert('Failed to delete account. Please try again.')
+    }
   }
 
   // Credit Card methods

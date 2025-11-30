@@ -46,7 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Try API first, fallback to localStorage
       const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
-      
+      console.log('Using API URL:', API_URL)
+
       try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
           method: 'POST',
@@ -56,8 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (response.ok) {
           const data = await response.json()
-          const userData = { 
-            username: data.username, 
+          const userData = {
+            username: data.username,
             email: data.email,
             fullName: data.fullName,
             phone: data.phone
@@ -98,7 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Try API first, fallback to localStorage
       const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
-      
+      console.log('Using API URL (Register):', API_URL)
+
       try {
         const response = await fetch(`${API_URL}/api/auth/register`, {
           method: 'POST',
@@ -108,8 +110,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (response.ok) {
           const data = await response.json()
-          const userData = { 
-            username: data.username, 
+          const userData = {
+            username: data.username,
             email: data.email,
             fullName: data.fullName,
             phone: data.phone
@@ -129,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Fallback to localStorage
       const users = JSON.parse(localStorage.getItem('users') || '[]')
-      
+
       if (users.some((u: any) => u.username === username)) {
         return false
       }

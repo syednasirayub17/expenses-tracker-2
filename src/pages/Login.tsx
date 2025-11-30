@@ -81,7 +81,7 @@ const Login = () => {
         <h2 className="login-subtitle">
           {isForgotPassword ? 'Reset Password' : isLogin ? 'Login' : 'Sign Up'}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -210,9 +210,8 @@ const Login = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   )
 }
 
 export default Login
-

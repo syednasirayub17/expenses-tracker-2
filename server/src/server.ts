@@ -46,6 +46,8 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:5173',
       'https://expenses-tracker-2-one.vercel.app',
+      'capacitor://localhost',
+      'http://localhost',
       process.env.CLIENT_URL
     ].filter(Boolean);
 

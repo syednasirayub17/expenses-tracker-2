@@ -52,7 +52,7 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
-export const login = async (req: AuthRequest, res: Response): Promise<void> => {
+export const login = async (req: AuthRequest, res: Response): Promise<Response | void> => {
   try {
     const { username, email, password } = req.body;
 

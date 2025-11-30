@@ -252,58 +252,27 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   const deleteBankAccount = async (id: string) => {
-    // Store original state for rollback
-    const originalAccounts = [...bankAccounts]
-    const originalTransactions = [...transactions]
-
-    // Optimistically update UI
+    // Immediately update UI and localStorage (local-first approach)
     const updatedAccounts = bankAccounts.filter((a) => a.id !== id)
     const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'bank'))
 
     setBankAccounts(updatedAccounts)
     setTransactions(updatedTransactions)
 
-    // Update localStorage immediately
+    // Save to localStorage immediately
     if (username) {
       localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
 
-    // Try to delete from backend
+    // Try to sync deletion to backend (non-blocking)
     try {
       await accountApi.deleteBankAccount(id)
-      console.log('Account deleted successfully from backend')
+      console.log('✓ Account deleted from backend')
     } catch (err: any) {
-      console.error('Failed to delete bank account from backend:', err)
-      console.log('Account ID:', id)
-      console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing')
-
-      // Check if this is a 404 (account doesn't exist in backend)
-      const is404 = err.message?.includes('404')
-
-      if (is404) {
-        // Account was only in localStorage, deletion already complete
-        console.log('Account was local-only, deleted from localStorage successfully')
-        return
-      }
-
-      // For other errors, ask user if they want to delete locally anyway
-      const deleteLocally = window.confirm(
-        `Failed to delete from server: ${err.message || 'Unknown error'}\n\n` +
-        `Do you want to delete it locally anyway?\n\n` +
-        `Click OK to delete locally, or Cancel to keep the account.`
-      )
-
-      if (!deleteLocally) {
-        // Rollback on user cancel
-        setBankAccounts(originalAccounts)
-        setTransactions(originalTransactions)
-        if (username) {
-          localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(originalAccounts))
-          localStorage.setItem(getUserKey('transactions', username), JSON.stringify(originalTransactions))
-        }
-      }
-      // If user chose OK, keep the deletion (already done optimistically)
+      // Log error but don't rollback - deletion is already complete locally
+      console.warn('⚠ Failed to delete from backend (local deletion successful):', err.message)
+      // Backend sync will happen on next refresh/login
     }
   }
 

@@ -13,7 +13,7 @@ class ActivityLoggerService {
      * Parse user agent to extract device and browser info
      */
     private parseUserAgent(userAgent: string): { device: string; browser: string } {
-        const parser = new UAParser(userAgent);
+        const parser = new (UAParser as any)(userAgent);
         const result = parser.getResult();
 
         const device = result.device.type
@@ -36,12 +36,12 @@ class ActivityLoggerService {
 
         try {
             const response = await fetch(`https://ipapi.co/${ip}/json/`);
-            const data = await response.json();
+            const data = await response.json() as any;
 
             return {
-                city: data.city,
-                region: data.region,
-                country: data.country_name
+                city: data.city as string,
+                region: data.region as string,
+                country: data.country_name as string
             };
         } catch (error) {
             console.error('Error fetching location:', error);

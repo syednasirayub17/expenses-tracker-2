@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getInsights } from '../services/smartApi';
+import { formatCurrency } from '../utils/currency';
 import './SpendingInsights.css';
 
 interface Insight {
@@ -87,12 +88,12 @@ const SpendingInsights = () => {
                     <div className="comparison-amounts">
                         <div className="amount-item">
                             <span className="amount-label">{comparison.currentMonth.month}</span>
-                            <span className="amount-value">${comparison.currentMonth.total.toFixed(0)}</span>
+                            <span className="amount-value">{formatCurrency(comparison.currentMonth.total)}</span>
                         </div>
                         <div className="amount-divider">vs</div>
                         <div className="amount-item">
                             <span className="amount-label">{comparison.lastMonth.month}</span>
-                            <span className="amount-value">${comparison.lastMonth.total.toFixed(0)}</span>
+                            <span className="amount-value">{formatCurrency(comparison.lastMonth.total)}</span>
                         </div>
                     </div>
                 </div>
@@ -122,7 +123,7 @@ const SpendingInsights = () => {
                                     <span className="breakdown-count">{item.transactionCount} transactions</span>
                                 </div>
                                 <div className="breakdown-amount">
-                                    <span className="amount">${item.amount.toFixed(0)}</span>
+                                    <span className="amount">{formatCurrency(item.amount)}</span>
                                     <span className="percentage">{item.percentage}%</span>
                                 </div>
                                 <div className="breakdown-bar">

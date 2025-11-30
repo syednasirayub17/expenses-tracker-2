@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
 class TwoFactorService {
-    private transporter: nodemailer.Transporter;
+    private transporter: any;
 
     constructor() {
         // Configure email transporter (using Gmail as example)

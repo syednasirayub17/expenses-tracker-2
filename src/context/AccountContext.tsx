@@ -267,7 +267,11 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
               setCategories(JSON.parse(storedCategories))
             } catch (err) {
               console.error('Error loading categories:', err)
-              setCategories(defaultCategories) // Fallback to default categories
+              setCategories({
+                expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other'],
+                income: ['Salary', 'Business', 'Investment', 'Gift', 'Other'],
+                payment: ['Credit Card Payment', 'Loan EMI', 'Other'],
+              })
             }
           }
         }

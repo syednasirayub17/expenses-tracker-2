@@ -10,6 +10,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import accountRoutes from './routes/accountRoutes';
 import adminRoutes from './routes/adminRoutes';
+import smartRoutes from './routes/smartRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import googleSheets from './services/googleSheets';
 
@@ -74,6 +75,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/smart', smartRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

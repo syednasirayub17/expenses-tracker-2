@@ -1,0 +1,227 @@
+.spending-insights {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.insights-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.insights-loading,
+.insights-error {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.insights-error {
+    color: #f44336;
+}
+
+/* Monthly Comparison */
+.comparison-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.comparison-label {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.trend-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.comparison-amounts {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.amount-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.amount-label {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.amount-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.amount-divider {
+    font-size: 14px;
+    opacity: 0.6;
+    margin: 0 16px;
+}
+
+/* Insights Grid */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.insight-card {
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.insight-warning {
+    background: #fff3e0;
+    border-color: #ff9800;
+}
+
+.insight-success {
+    background: #e8f5e9;
+    border-color: #4caf50;
+}
+
+.insight-info {
+    background: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.insight-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.insight-message {
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Breakdown Section */
+.breakdown-section {
+    margin-top: 24px;
+}
+
+.breakdown-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.breakdown-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.breakdown-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.breakdown-category {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.breakdown-count {
+    font-size: 12px;
+    color: #999;
+}
+
+.breakdown-amount {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.breakdown-amount .amount {
+    font-size: 18px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.breakdown-amount .percentage {
+    font-size: 14px;
+    color: #666;
+}
+
+.breakdown-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.breakdown-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+/* No Insights */
+.no-insights {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.no-insights p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-amounts {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .amount-divider {
+        transform: rotate(90deg);
+    }
+}

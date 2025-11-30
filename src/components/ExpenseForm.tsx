@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Expense } from '../types'
+import { suggestCategory } from '../services/smartApi'
 import './ExpenseForm.css'
 
 interface ExpenseFormProps {
@@ -25,6 +26,8 @@ const ExpenseForm = ({ expense, onSave, onCancel }: ExpenseFormProps) => {
   const [category, setCategory] = useState(categories[0])
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [description, setDescription] = useState('')
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null)
+  const [loadingSuggestion, setLoadingSuggestion] = useState(false)
 
   useEffect(() => {
     if (expense) {
@@ -54,6 +57,28 @@ const ExpenseForm = ({ expense, onSave, onCancel }: ExpenseFormProps) => {
     }
 
     onSave(expenseData)
+  }
+
+  const handleGetSuggestion = async () => {
+    if (!description.trim()) {
+      alert('Please enter a description first')
+      return
+    }
+
+    try {
+      setLoadingSuggestion(true)
+      const result = await suggestCategory(description)
+      if (result && result.category) {
+        setSuggestedCategory(result.category)
+        setCategory(result.category)
+      } else {
+        alert('No suggestion available for this description')
+      }
+    } catch (error) {
+      console.error('Error getting suggestion:', error)
+    } finally {
+      setLoadingSuggestion(false)
+    }
   }
 
   return (
@@ -89,7 +114,19 @@ const ExpenseForm = ({ expense, onSave, onCancel }: ExpenseFormProps) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="category">Category *</label>
+              <div className="category-header">
+                <label htmlFor="category">Category *</label>
+                {description && (
+                  <button
+                    type="button"
+                    onClick={handleGetSuggestion}
+                    className="suggest-button"
+                    disabled={loadingSuggestion}
+                  >
+                    {loadingSuggestion ? '...' : '✨ Smart Suggest'}
+                  </button>
+                )}
+              </div>
               <select
                 id="category"
                 value={category}
@@ -102,6 +139,9 @@ const ExpenseForm = ({ expense, onSave, onCancel }: ExpenseFormProps) => {
                   </option>
                 ))}
               </select>
+              {suggestedCategory && (
+                <span className="suggestion-hint">💡 Suggested: {suggestedCategory}</span>
+              )}
             </div>
           </div>
 

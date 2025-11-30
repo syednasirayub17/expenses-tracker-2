@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Migration Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 User Data Migration Tool</h1>
+        <p class="subtitle">Migrate your localStorage account and data to MongoDB</p>
+
+        <div class="info-box">
+            <strong>ℹ️ Instructions:</strong><br>
+            1. Open this page in the browser where you have your data<br>
+            2. Click "Step 1" to extract your localStorage data<br>
+            3. Enter your password and click "Step 2" to migrate to MongoDB<br>
+            4. Your data will be synced across all devices!
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Extract localStorage Data</h3>
+            <p>Click the button below to extract your user data and entries from localStorage.</p>
+            <button onclick="extractData()">Extract Data</button>
+            <div id="extractOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Migrate to MongoDB</h3>
+            <p>Enter your password to create your account in MongoDB and migrate your data.</p>
+            <input type="password" id="password" placeholder="Enter your password" />
+            <button onclick="migrateToMongoDB()" id="migrateBtn" disabled>Migrate to MongoDB</button>
+            <div id="migrateOutput" class="output" style="display:none;"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Verify</h3>
+            <p>After migration, login on your mobile device to verify sync is working.</p>
+            <button onclick="verifyMigration()">Check Migration Status</button>
+            <div id="verifyOutput" class="output" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://expenses-tracker-api-a7ni.onrender.com';
+        let extractedData = null;
+
+        function extractData() {
+            const output = document.getElementById('extractOutput');
+            output.style.display = 'block';
+            output.innerHTML = 'Extracting data from localStorage...<br><br>';
+
+            try {
+                // Get current user
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (!user.username) {
+                    output.innerHTML += '<span class="error">❌ No user found in localStorage!</span><br>';
+                    output.innerHTML += 'Please make sure you\'re on the browser where you have your data.';
+                    return;
+                }
+
+                // Get all user data
+                const username = user.username;
+                const bankAccounts = JSON.parse(localStorage.getItem(`bankAccounts_${username}`) || '[]');
+                const creditCards = JSON.parse(localStorage.getItem(`creditCards_${username}`) || '[]');
+                const loans = JSON.parse(localStorage.getItem(`loans_${username}`) || '[]');
+                const transactions = JSON.parse(localStorage.getItem(`transactions_${username}`) || '[]');
+                const budgets = JSON.parse(localStorage.getItem(`budgets_${username}`) || '[]');
+
+                extractedData = {
+                    user,
+                    bankAccounts,
+                    creditCards,
+                    loans,
+                    transactions,
+                    budgets
+                };
+
+                output.innerHTML += `<span class="success">✅ Data extracted successfully!</span><br><br>`;
+                output.innerHTML += `<strong>User:</strong> ${user.username} (${user.email})<br>`;
+                output.innerHTML += `<strong>Bank Accounts:</strong> ${bankAccounts.length}<br>`;
+                output.innerHTML += `<strong>Credit Cards:</strong> ${creditCards.length}<br>`;
+                output.innerHTML += `<strong>Loans:</strong> ${loans.length}<br>`;
+                output.innerHTML += `<strong>Transactions:</strong> ${transactions.length}<br>`;
+                output.innerHTML += `<strong>Budgets:</strong> ${budgets.length}<br><br>`;
+                output.innerHTML += `<strong>Total entries:</strong> ${bankAccounts.length + creditCards.length + loans.length + transactions.length + budgets.length}<br><br>`;
+                output.innerHTML += '<span class="success">Ready to migrate! Enter your password and click "Migrate to MongoDB"</span>';
+
+                // Enable migrate button
+                document.getElementById('migrateBtn').disabled = false;
+            } catch (error) {
+                output.innerHTML += `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function migrateToMongoDB() {
+            if (!extractedData) {
+                alert('Please extract data first!');
+                return;
+            }
+
+            const password = document.getElementById('password').value;
+            if (!password) {
+                alert('Please enter your password!');
+                return;
+            }
+
+            const output = document.getElementById('migrateOutput');
+            output.style.display = 'block';
+            output.innerHTML = 'Starting migration...<br><br>';
+
+            try {
+                // Step 1: Register user in MongoDB
+                output.innerHTML += '1️⃣ Creating user account in MongoDB...<br>';
+                const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: extractedData.user.username,
+                        email: extractedData.user.email,
+                        password: password
+                    })
+                });
+
+                if (!registerResponse.ok) {
+                    const error = await registerResponse.json();
+                    throw new Error(error.message || 'Failed to create user');
+                }
+
+                const userData = await registerResponse.json();
+                const token = userData.token;
+                output.innerHTML += '<span class="success">✅ User created successfully!</span><br><br>';
+
+                // Step 2: Migrate bank accounts
+                output.innerHTML += '2️⃣ Migrating bank accounts...<br>';
+                for (const account of extractedData.bankAccounts) {
+                    await fetch(`${API_URL}/api/accounts/bank`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(account)
+                    });
+                }
+                output.innerHTML += `<span class="success">✅ Migrated ${extractedData.bankAccounts.length} bank accounts</span><br>`;
+
+                // Step 3: Migrate credit cards
+                output.innerHTML += '3️⃣ Migrating credit cards...<br>';
+                for (const card of extractedData.creditCards) {
+                    await fetch(`${API_URL}/api/accounts/creditcard`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(card)
+                    });
+                }
+                output.innerHTML += `<span class="success">✅ Migrated ${extractedData.creditCards.length} credit cards</span><br>`;
+
+                // Step 4: Migrate loans
+                output.innerHTML += '4️⃣ Migrating loans...<br>';
+                for (const loan of extractedData.loans) {
+                    await fetch(`${API_URL}/api/accounts/loan`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(loan)
+                    });
+                }
+                output.innerHTML += `<span class="success">✅ Migrated ${extractedData.loans.length} loans</span><br>`;
+
+                // Step 5: Migrate transactions
+                output.innerHTML += '5️⃣ Migrating transactions...<br>';
+                for (const transaction of extractedData.transactions) {
+                    await fetch(`${API_URL}/api/accounts/transaction`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(transaction)
+                    });
+                }
+                output.innerHTML += `<span class="success">✅ Migrated ${extractedData.transactions.length} transactions</span><br>`;
+
+                // Step 6: Migrate budgets
+                output.innerHTML += '6️⃣ Migrating budgets...<br>';
+                for (const budget of extractedData.budgets) {
+                    await fetch(`${API_URL}/api/accounts/budget`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(budget)
+                    });
+                }
+                output.innerHTML += `<span class="success">✅ Migrated ${extractedData.budgets.length} budgets</span><br><br>`;
+
+                output.innerHTML += '<span class="success">🎉 Migration completed successfully!</span><br><br>';
+                output.innerHTML += '<strong>Next steps:</strong><br>';
+                output.innerHTML += '1. Login on your mobile device<br>';
+                output.innerHTML += '2. Your data should sync automatically!<br>';
+                output.innerHTML += '3. Click "Check Migration Status" below to verify';
+
+                // Store token for verification
+                localStorage.setItem('migrationToken', token);
+            } catch (error) {
+                output.innerHTML += `<br><span class="error">❌ Migration failed: ${error.message}</span><br><br>`;
+                output.innerHTML += 'Please try again or contact support.';
+            }
+        }
+
+        async function verifyMigration() {
+            const output = document.getElementById('verifyOutput');
+            output.style.display = 'block';
+            output.innerHTML = 'Checking migration status...<br><br>';
+
+            try {
+                const token = localStorage.getItem('migrationToken') || localStorage.getItem('token');
+                if (!token) {
+                    output.innerHTML += '<span class="error">❌ No auth token found. Please complete migration first.</span>';
+                    return;
+                }
+
+                // Check if data exists in MongoDB
+                const [bankAccounts, creditCards, loans, transactions, budgets] = await Promise.all([
+                    fetch(`${API_URL}/api/accounts/bank`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/accounts/creditcard`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/accounts/loan`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/accounts/transaction`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()),
+                    fetch(`${API_URL}/api/accounts/budget`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json())
+                ]);
+
+                output.innerHTML += '<span class="success">✅ Data found in MongoDB!</span><br><br>';
+                output.innerHTML += `<strong>Bank Accounts:</strong> ${bankAccounts.length}<br>`;
+                output.innerHTML += `<strong>Credit Cards:</strong> ${creditCards.length}<br>`;
+                output.innerHTML += `<strong>Loans:</strong> ${loans.length}<br>`;
+                output.innerHTML += `<strong>Transactions:</strong> ${transactions.length}<br>`;
+                output.innerHTML += `<strong>Budgets:</strong> ${budgets.length}<br><br>`;
+                output.innerHTML += '<span class="success">🎉 Migration verified! Your data is now syncing across devices!</span>';
+            } catch (error) {
+                output.innerHTML += `<span class="error">❌ Verification failed: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

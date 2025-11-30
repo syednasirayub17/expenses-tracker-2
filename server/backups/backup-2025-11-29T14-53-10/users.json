@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "692490ef68547bbac149a2c2",
+    "username": "nasir",
+    "email": "nasir@expenses.com",
+    "password": "$2a$10$s12pY6lwbJgwR4kpKJPgN.V4MP2Np51CHEA.TjXL2f7XR4pv1kMHG",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2025-11-24T17:07:59.181Z",
+    "updatedAt": "2025-11-24T17:07:59.181Z",
+    "__v": 0
+  },
+  {
+    "_id": "692882eb11b70c8938a29736",
+    "username": "Nasir Ayub",
+    "email": "syednasirayub@outlook.com",
+    "password": "$2a$10$GWK2NabkqWXumnIak6wYBOEEy4iM2GVFr0G0jIS/YvZYhWnQD8N.m",
+    "role": "user",
+    "isActive": true,
+    "createdAt": "2025-11-27T16:57:15.482Z",
+    "updatedAt": "2025-11-27T16:57:15.482Z",
+    "__v": 0
+  }
+]

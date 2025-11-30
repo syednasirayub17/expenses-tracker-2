@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-11-29T14-28-07",
+  "date": "2025-11-29T14:28:08.012Z",
+  "totalDocuments": 15,
+  "collections": [
+    "users",
+    "bankaccounts",
+    "creditcards",
+    "loans",
+    "transactions",
+    "budgets",
+    "daybooks",
+    "journals",
+    "stocks",
+    "sips"
+  ],
+  "mongodbUri": "mongodb+srv://nasir_admin:****@expenses-tracker.xuryigt.mongodb.net/expenses-tracker?retryWrites=true&w=majority"
+}

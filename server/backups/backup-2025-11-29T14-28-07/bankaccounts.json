@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "69287b27d9dcf11fac74e887",
+    "userId": "69286fd8ef3018662bae104b",
+    "name": "Nasir",
+    "accountNumber": "1560",
+    "bankName": "ICICI Bank",
+    "balance": 7653.41,
+    "accountType": "savings",
+    "createdAt": "2025-11-27T16:24:07.235Z",
+    "updatedAt": "2025-11-27T16:24:07.235Z",
+    "__v": 0
+  },
+  {
+    "_id": "6928811ad9dcf11fac74e893",
+    "userId": "69286fd8ef3018662bae104b",
+    "name": "POCKET",
+    "accountNumber": "CASH",
+    "bankName": "Cash in Hand",
+    "balance": 500,
+    "accountType": "cash",
+    "createdAt": "2025-11-27T16:49:30.065Z",
+    "updatedAt": "2025-11-27T16:49:30.065Z",
+    "__v": 0
+  },
+  {
+    "_id": "6928813cd9dcf11fac74e895",
+    "userId": "69286fd8ef3018662bae104b",
+    "name": "Nasir",
+    "accountNumber": "1560",
+    "bankName": "ICICI Bank",
+    "balance": 7653.41,
+    "accountType": "savings",
+    "createdAt": "2025-11-27T16:50:04.705Z",
+    "updatedAt": "2025-11-27T16:50:04.705Z",
+    "__v": 0
+  }
+]

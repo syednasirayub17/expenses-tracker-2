@@ -1,6 +1,7 @@
 import { useAccount } from '../context/AccountContext'
 import { formatCurrency } from '../utils/currency'
 import PieChart from './PieChart'
+import SpendingInsights from './SpendingInsights'
 import './DashboardOverview.css'
 
 const DashboardOverview = () => {
@@ -87,6 +88,8 @@ const DashboardOverview = () => {
       <div className="overview-header">
         <h2>Dashboard Overview</h2>
       </div>
+
+      <SpendingInsights />
 
       <div className="overview-cards">
         <div className="overview-card primary">

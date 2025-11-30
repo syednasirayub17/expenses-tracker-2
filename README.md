@@ -1,241 +1,247 @@
-# 📚 Expenses Tracker - Complete Documentation
+# 💰 Expenses Tracker
+
+A full-stack expense tracking application with smart features, built with React, TypeScript, Node.js, Express, and MongoDB.
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
+![React](https://img.shields.io/badge/react-18.2.0-blue)
 
 ## 📋 Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Quick Start Guide](#quick-start-guide)
-3. [Architecture](#architecture)
-4. [Deployment](#deployment)
-5. [API Documentation](#api-documentation)
-6. [Admin Panel](#admin-panel)
-7. [Android App](#android-app)
-8. [Troubleshooting](#troubleshooting)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+- [Deployment](#deployment)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [Smart Features](#smart-features)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🎯 Project Overview
+## ✨ Features
 
-**Expenses Tracker** is a full-stack expense management application with web, mobile, and admin interfaces.
+### Core Features
+- 💳 **Multi-Account Management**: Track bank accounts, credit cards, loans, and cash
+- 📊 **Transaction Tracking**: Record income, expenses, and transfers
+- 📈 **Budget Management**: Set and monitor budgets by category
+- 🎯 **Savings Goals**: Track progress towards financial goals
+- 📱 **Mobile App**: Android app using Capacitor
+- 🔐 **Secure Authentication**: JWT-based auth with bcrypt password hashing
+- 📤 **Data Export**: Export reports to CSV/PDF
+- 📊 **Visual Reports**: Charts and graphs for spending analysis
 
-### Key Features
-- ✅ User authentication & authorization
-- ✅ Multi-account management (Bank, Credit Card, Loans)
-- ✅ Transaction tracking & categorization
-- ✅ Budget management
-- ✅ Investment tracking (Stocks, SIPs)
-- ✅ Day book & Journal entries
-- ✅ Admin panel for user management
-- ✅ Google Sheets integration
-- ✅ Cross-device data synchronization
-- ✅ Android mobile app
+### Smart Features (No AI APIs Required!)
+- ✨ **Smart Category Suggestions**: Auto-suggests categories based on transaction descriptions
+- 💡 **Spending Insights**: Monthly comparisons, budget alerts, and trend analysis
+- 📊 **Analytics Dashboard**: Real-time spending breakdown by category
+- 🎯 **Budget Recommendations**: AI-powered budget suggestions based on spending history
+- 🔍 **Unusual Spending Detection**: Alerts when spending patterns change significantly
+- 📈 **Financial Health Score**: 0-100 score based on savings, budgets, and debt
 
-### Tech Stack
-
-**Frontend:**
-- React 18.2.0
-- TypeScript 5.3.3
-- Vite 5.0.8
-- React Router 6.20.0
-- CSS3 (Custom styling)
-
-**Backend:**
-- Node.js (Express 4.18.2)
-- TypeScript 5.3.3
-- MongoDB (Mongoose 8.0.3)
-- JWT Authentication
-- Google Sheets API
-
-**Mobile:**
-- Capacitor 7.4.4
-- Android (Java 21)
-
-**Deployment:**
-- Frontend: Vercel
-- Backend: Render
-- Database: MongoDB Atlas
+### Integrations
+- 📊 **Google Sheets Sync**: Auto-sync data to Google Sheets
+- ☁️ **Cloud Backup**: Automated backups to Google Drive
 
 ---
 
-## 🚀 Quick Start Guide
+## 🛠 Tech Stack
 
-### Prerequisites
-```bash
-Node.js >= 18.x
-npm >= 9.x
-MongoDB (local or Atlas)
-Android Studio (for mobile app)
-Java 21 (for Android builds)
-```
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for fast builds
+- **Context API** for state management
+- **CSS3** for styling
+- **Capacitor** for mobile app
 
-### Local Development
+### Backend
+- **Node.js** with Express
+- **TypeScript** for type safety
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **Google APIs** for Sheets integration
 
-**1. Clone Repository**
+### DevOps
+- **Vercel** for frontend deployment
+- **Render** for backend deployment
+- **GitHub Actions** for CI/CD
+
+---
+
+## 📦 Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** >= 18.0.0
+- **npm** >= 9.0.0
+- **MongoDB** (local or Atlas)
+- **Git**
+
+---
+
+## 🚀 Installation
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/syednasirayub17/expenses-tracker-2.git
 cd expenses-tracker-2
 ```
 
-**2. Install Dependencies**
-```bash
-# Frontend
-npm install
+### 2. Install Dependencies
 
-# Backend
-cd server
+#### Frontend
+```bash
 npm install
 ```
 
-**3. Environment Setup**
+#### Backend
+```bash
+cd server
+npm install
+cd ..
+```
 
-**Frontend `.env`:**
+---
+
+## 🔐 Environment Variables
+
+### Frontend (.env)
+
+Create a `.env` file in the root directory:
+
 ```env
 VITE_API_URL=http://localhost:5000
 ```
 
-**Backend `server/.env`:**
+### Backend (server/.env)
+
+Create a `.env` file in the `server` directory:
+
 ```env
+# Server
 PORT=5000
 NODE_ENV=development
+
+# Database
 MONGODB_URI=mongodb://localhost:27017/expenses-tracker
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRE=7d
+# OR for MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/expenses-tracker
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Google Sheets (Optional)
+GOOGLE_SHEETS_SPREADSHEET_ID=your-spreadsheet-id
+GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
+
+# Client URL (for CORS)
 CLIENT_URL=http://localhost:5173
-
-# Google Sheets (optional)
-GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
-GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account@project.iam.gserviceaccount.com
 ```
-
-**4. Start Development Servers**
-```bash
-# Terminal 1 - Frontend
-npm run dev
-
-# Terminal 2 - Backend
-cd server
-npm run dev
-```
-
-**5. Access Application**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
-- Admin Panel: http://localhost:5173/admin/login
 
 ---
 
-## 🏗️ Architecture
+## 🏃 Running the Application
 
-### Project Structure
-```
-expenses-tracker/
-├── src/                          # Frontend source
-│   ├── components/              # React components
-│   │   ├── BudgetManager.tsx
-│   │   ├── CreditCardManager.tsx
-│   │   ├── LoanManager.tsx
-│   │   ├── ExpenseForm.tsx
-│   │   ├── ExpenseList.tsx
-│   │   └── ...
-│   ├── context/                 # React context providers
-│   │   ├── AuthContext.tsx
-│   │   ├── AccountContext.tsx
-│   │   └── ThemeContext.tsx
-│   ├── pages/                   # Page components
-│   │   ├── Login.tsx
-│   │   ├── Dashboard.tsx
-│   │   ├── AdminLogin.tsx
-│   │   └── Admin/
-│   │       └── AdminDashboard.tsx
-│   ├── services/                # API services
-│   │   ├── api.ts
-│   │   └── accountApi.ts
-│   └── types/                   # TypeScript types
-│       └── index.ts
-├── server/                       # Backend source
-│   ├── src/
-│   │   ├── controllers/         # Route controllers
-│   │   ├── models/              # MongoDB models
-│   │   ├── routes/              # API routes
-│   │   ├── middleware/          # Express middleware
-│   │   ├── services/            # Business logic
-│   │   ├── config/              # Configuration
-│   │   └── server.ts            # Entry point
-│   └── package.json
-├── android/                      # Android app
-│   ├── app/
-│   └── build.gradle
-├── capacitor.config.ts          # Capacitor config
-├── package.json                 # Frontend dependencies
-└── vercel.json                  # Vercel config
+### Development Mode
+
+#### 1. Start MongoDB (if running locally)
+```bash
+mongod
 ```
 
-### Data Flow
+#### 2. Start Backend Server
+```bash
+cd server
+npm run dev
 ```
-User → Frontend (React) → API (Express) → Database (MongoDB)
-                ↓
-         Local Storage (Cache)
+Server runs on `http://localhost:5000`
+
+#### 3. Start Frontend (in a new terminal)
+```bash
+npm run dev
+```
+Frontend runs on `http://localhost:5173`
+
+### Production Build
+
+#### Frontend
+```bash
+npm run build
+npm run preview
+```
+
+#### Backend
+```bash
+cd server
+npm run build
+npm start
 ```
 
 ---
 
 ## 🌐 Deployment
 
-### Live URLs
+### Frontend (Vercel)
 
-**Production:**
-- Frontend: https://expenses-tracker-2-one.vercel.app
-- Backend API: https://expenses-tracker-api-a7ni.onrender.com
-- Admin Panel: https://expenses-tracker-2-one.vercel.app/admin/login
+1. **Connect Repository**
+   - Go to [Vercel](https://vercel.com)
+   - Import your GitHub repository
 
-### Deployment Steps
+2. **Configure Build Settings**
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
 
-**1. Backend (Render)**
+3. **Add Environment Variables**
+   - `VITE_API_URL`: Your backend URL (e.g., `https://your-api.onrender.com`)
+
+4. **Deploy**
+   - Vercel will auto-deploy on every push to `main`
+
+### Backend (Render)
+
+1. **Create Web Service**
+   - Go to [Render](https://render.com)
+   - Create new Web Service
+   - Connect your GitHub repository
+
+2. **Configure Settings**
+   - Root Directory: `server`
+   - Build Command: `npm install && npm run build`
+   - Start Command: `npm start`
+
+3. **Add Environment Variables**
+   - Add all variables from `server/.env`
+   - Use MongoDB Atlas URI for production
+
+4. **Deploy**
+   - Render will auto-deploy on every push
+
+### Android App
+
 ```bash
-# Push to GitHub
-git push origin main
+# Build the app
+npm run build:android
 
-# Render auto-deploys from GitHub
-# Environment variables set in Render dashboard
-```
+# Run on device/emulator
+cd android
+./gradlew assembleDebug
 
-**2. Frontend (Vercel)**
-```bash
-# Push to GitHub
-git push origin main
-
-# Vercel auto-deploys from GitHub
-# Environment variables:
-VITE_API_URL=https://expenses-tracker-api-a7ni.onrender.com
-```
-
-**3. Android APK**
-```bash
-# Build frontend
-npm run build
-
-# Sync to Android
-npx cap sync android
-
-# Build APK
-cd android && ./gradlew assembleDebug
-
-# APK location:
-# android/app/build/outputs/apk/debug/app-debug.apk
+# Install APK
+adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ---
 
-## 📡 API Documentation
+## 📚 API Documentation
 
-### Base URL
-```
-Production: https://expenses-tracker-api-a7ni.onrender.com
-Development: http://localhost:5000
-```
+### Authentication
 
-### Authentication Endpoints
-
-**Register User**
+#### Register
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -243,350 +249,169 @@ Content-Type: application/json
 {
   "username": "john_doe",
   "email": "john@example.com",
-  "password": "SecurePass123"
-}
-
-Response: {
-  "_id": "user_id",
-  "username": "john_doe",
-  "email": "john@example.com",
-  "token": "jwt_token"
+  "password": "securePassword123"
 }
 ```
 
-**Login**
+#### Login
 ```http
 POST /api/auth/login
 Content-Type: application/json
 
 {
   "email": "john@example.com",
-  "password": "SecurePass123"
-}
-
-Response: {
-  "_id": "user_id",
-  "username": "john_doe",
-  "email": "john@example.com",
-  "token": "jwt_token"
+  "password": "securePassword123"
 }
 ```
 
-**Get Profile**
-```http
-GET /api/auth/profile
-Authorization: Bearer {token}
+### Accounts
 
-Response: {
-  "_id": "user_id",
-  "username": "john_doe",
-  "email": "john@example.com"
-}
-```
-
-### Account Endpoints
-
-**Get Bank Accounts**
+#### Get Bank Accounts
 ```http
 GET /api/accounts/bank
-Authorization: Bearer {token}
+Authorization: Bearer <token>
 ```
 
-**Create Bank Account**
+#### Create Transaction
 ```http
-POST /api/accounts/bank
-Authorization: Bearer {token}
+POST /api/accounts/transaction
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "name": "HDFC Savings",
-  "balance": 50000,
-  "type": "savings"
+  "title": "Grocery Shopping",
+  "amount": 50.00,
+  "category": "Food",
+  "type": "expense",
+  "date": "2025-11-30"
 }
 ```
 
-**Update Bank Account**
+### Smart Features
+
+#### Get Spending Insights
 ```http
-PUT /api/accounts/bank/:id
-Authorization: Bearer {token}
+GET /api/smart/insights
+Authorization: Bearer <token>
 ```
 
-**Delete Bank Account**
+#### Suggest Category
 ```http
-DELETE /api/accounts/bank/:id
-Authorization: Bearer {token}
-```
+POST /api/smart/suggest-category
+Authorization: Bearer <token>
+Content-Type: application/json
 
----
-
-## 🔐 Admin Panel
-
-### Access
-**URL**: https://expenses-tracker-2-one.vercel.app/admin/login
-
-**Credentials:**
-- Username: `nasir`
-- Password: `Jio@#$2025`
-
-### Features
-- View all registered users
-- Search and filter users
-- View user statistics
-- Manage user accounts
-- View system analytics
-
-### Admin Routes
-```
-/admin/login          - Admin login page
-/admin/dashboard      - Admin dashboard (protected)
-```
-
----
-
-## 📱 Android App
-
-### APK Location
-```
-/Users/nasir/Documents/project/expenses-tracker/android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-### Installation
-1. Copy APK to Android device
-2. Enable "Install from unknown sources"
-3. Install APK
-4. Login with your credentials
-
-### Features
-- All web features available
-- Offline caching (localStorage)
-- Cross-device sync
-- Native Android experience
-
-### Building APK
-```bash
-# 1. Build frontend
-npm run build
-
-# 2. Sync to Android
-npx cap sync android
-
-# 3. Build APK
-cd android
-./gradlew assembleDebug
-
-# 4. APK ready at:
-# app/build/outputs/apk/debug/app-debug.apk
-```
-
----
-
-## 🔧 Configuration Files
-
-### `capacitor.config.ts`
-```typescript
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'com.expenses.tracker',
-  appName: 'Expenses Tracker',
-  webDir: 'dist',
-  server: {
-    allowNavigation: [
-      'https://expenses-tracker-api-a7ni.onrender.com',
-      'https://expenses-tracker-2-one.vercel.app'
-    ]
-  }
-};
-
-export default config;
-```
-
-### `vercel.json`
-```json
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "description": "coffee at starbucks"
 }
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## 📁 Project Structure
 
-### Common Issues
-
-**1. Backend Not Responding**
-- Check if Render service is running
-- Wait 30 seconds (cold start on free tier)
-- Verify MongoDB connection
-
-**2. CORS Errors**
-- Ensure `CLIENT_URL` is set correctly in backend
-- Check API URL in frontend `.env`
-
-**3. Android App Won't Install**
-- Enable "Install from unknown sources"
-- Check Android version (minimum 5.1)
-
-**4. Data Not Syncing**
-- Check internet connection
-- Verify API URL is correct
-- Check browser console for errors
-
-**5. Admin Panel 404**
-- Ensure `vercel.json` is deployed
-- Clear browser cache
-- Check Vercel deployment logs
-
----
-
-## 📊 Database Schema
-
-### User Model
-```typescript
-{
-  username: String (required, unique)
-  email: String (required, unique)
-  password: String (hashed)
-  role: String (default: 'user')
-  createdAt: Date
-  updatedAt: Date
-}
+```
+expenses-tracker-2/
+├── src/                      # Frontend source
+│   ├── components/          # React components
+│   ├── context/            # Context providers
+│   ├── pages/              # Page components
+│   ├── services/           # API services
+│   ├── types/              # TypeScript types
+│   └── utils/              # Utility functions
+├── server/                  # Backend source
+│   ├── src/
+│   │   ├── controllers/    # Route controllers
+│   │   ├── middleware/     # Express middleware
+│   │   ├── models/         # Mongoose models
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic
+│   │   └── server.ts       # Entry point
+│   └── dist/               # Compiled JS (gitignored)
+├── android/                 # Android app (Capacitor)
+├── public/                  # Static assets
+└── .env                     # Environment variables
 ```
 
-### Account Models
-- BankAccount
-- CreditCard
-- Loan
-- Transaction
-- Budget
-- Investment
+---
+
+## 🧠 Smart Features
+
+### How Smart Category Suggestions Work
+
+1. **Keyword Matching**: Common merchants mapped to categories
+   - "starbucks" → Food
+   - "uber" → Transport
+   - "amazon" → Shopping
+
+2. **User Pattern Learning**: Analyzes your transaction history
+   - Finds similar descriptions
+   - Suggests most common category
+
+3. **Confidence Scoring**: Shows suggestions with high confidence
+
+### How Spending Insights Work
+
+1. **Monthly Comparison**: Current month vs last month
+2. **Budget Alerts**: Warns at 75% and 90% usage
+3. **Unusual Spending**: Detects >50% increase from 3-month average
+4. **Category Breakdown**: Top 5 spending categories
 
 ---
 
-## 🔒 Security
+## 🐛 Known Issues & Fixes
 
-### Authentication
-- JWT tokens (7-day expiry)
-- Bcrypt password hashing
-- Protected routes with middleware
+### Issue: Deleted transactions reappear
+**Status**: ✅ Fixed in v1.2.0
+**Solution**: Updated `deleteTransaction` to call API
 
-### Environment Variables
-- Never commit `.env` files
-- Use different secrets for production
-- Rotate JWT secrets regularly
+### Issue: Currency showing $ instead of ₹
+**Status**: ✅ Fixed in v1.2.0
+**Solution**: Updated SpendingInsights to use `formatCurrency`
 
----
-
-## 📈 Performance
-
-### Frontend
-- Vite for fast builds
-- Code splitting
-- Lazy loading
-- CDN delivery (Vercel)
-
-### Backend
-- MongoDB indexing
-- Efficient queries
-- Response caching
-- Connection pooling
+### Issue: Google Sheets authentication error
+**Status**: ⚠️ Optional feature
+**Solution**: Add credentials.json to Render environment
 
 ---
 
-## 💾 MongoDB Backup
+## 🤝 Contributing
 
-> [!WARNING]
-> MongoDB Atlas M0 (Free Tier) does **NOT** include automatic backups!
-
-### Automated Daily Backup (Configured ✅)
-
-Your database is automatically backed up **every night at 10:00 PM**.
-
-**Backup includes ALL data from:**
-- ✅ Android mobile app
-- ✅ Vercel web app
-- ✅ All users and transactions
-
-**Location:** `server/backups/`  
-**Retention:** Last 7 days (older backups auto-deleted)
-
-### Manual Backup
-
-Create a backup anytime:
-```bash
-cd server
-npm run backup
-```
-
-### View Backups
-
-```bash
-# List all backups
-ls -lh server/backups/
-
-# View backup logs
-tail -f /tmp/mongodb-backup.log
-```
-
-### Restore from Backup
-
-```bash
-cd server
-
-# List available backups
-npm run restore
-
-# Restore specific backup
-npm run restore backup-2025-11-29T14-53-10
-```
-
-### Backup to Google Drive (Manual)
-
-For cloud storage, manually upload important backups:
-
-1. Backups are in: `server/backups/`
-2. Upload ZIP files to: https://drive.google.com/drive/folders/1l8X3mb5ZGTY0ELIFgMblB0tg5TdPpG5A
-
-**📖 Full Documentation**: See [BACKUP_GUIDE.md](./BACKUP_GUIDE.md) for complete instructions.
-
----
-
-## 🎯 Future Enhancements
-
-- [ ] Offline mode for mobile app
-- [ ] Push notifications
-- [ ] Data export (PDF, Excel)
-- [ ] Recurring transactions
-- [ ] Bill reminders
-- [ ] Multi-currency support
-- [ ] Dark mode
-- [ ] Biometric authentication
-- [x] MongoDB backup solution
-- [ ] Analytics dashboard
-
----
-
-## 📞 Support
-
-For issues or questions:
-1. Check this documentation
-2. Review deployment logs
-3. Check browser console
-4. Verify environment variables
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-ISC License
+This project is licensed under the MIT License.
 
 ---
 
-**Last Updated**: November 24, 2025
-**Version**: 1.0.0
-**Author**: Nasir Ayub
+## 👨‍💻 Author
+
+**Syed Nasir Ayub**
+- GitHub: [@syednasirayub17](https://github.com/syednasirayub17)
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ using React and Node.js
+- Smart features powered by rule-based algorithms
+- UI inspired by modern fintech apps
+
+---
+
+## 📞 Support
+
+For issues and questions:
+- Open an issue on GitHub
+- Email: [your-email@example.com]
+
+---
+
+**Made with 💰 by Syed Nasir Ayub**

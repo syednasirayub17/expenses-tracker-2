@@ -712,6 +712,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (username) {
       localStorage.setItem(getUserKey('savings', username), JSON.stringify(updatedSavings))
     }
+    // Note: Savings are stored in localStorage only, no backend API for savings yet
+    // TODO: Add backend API for savings management
   }
 
   // Reconciliation methods

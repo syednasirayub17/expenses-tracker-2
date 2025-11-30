@@ -35,16 +35,47 @@ A full-stack expense tracking application with smart features, built with React,
 - 📤 **Data Export**: Export reports to CSV/PDF
 - 📊 **Visual Reports**: Charts and graphs for spending analysis
 
+### 🆕 Advanced Features
+
+#### 📈 Investment Tracking
+- **Multi-Asset Support**: Track stocks, mutual funds, cryptocurrency, and gold
+- **Portfolio Summary**: Real-time portfolio value with profit/loss calculations
+- **Gold Price Tracking**: Per-gram gold price with historical data
+- **Investment Analytics**: Gain/loss percentage by asset type
+- **Platform Integration**: Track investments across Zerodha, Groww, etc.
+
+#### 👥 Shared Wallets
+- **Family & Friends**: Create shared wallets for groups
+- **Smart Expense Splitting**: Equal, custom, or percentage-based splits
+- **Invite System**: Unique invite codes for easy member addition
+- **Settlement Optimization**: Minimizes transactions between members
+- **Balance Tracking**: Real-time who-owes-whom calculations
+- **Use Cases**: Family expenses, trip planning, roommate bills
+
+#### 💰 Enhanced Loan Tracker
+- **EMI Calculator**: Accurate EMI calculations with interest breakdown
+- **Prepayment Analysis**: Calculate impact of prepayments (reduce EMI vs tenure)
+- **Amortization Schedule**: Month-by-month payment breakdown
+- **Multiple Loan Types**: Personal, home, car, education, business loans
+- **Next EMI Tracking**: Upcoming payment reminders
+
+#### 🔐 Security & Activity Logs
+- **Activity Tracking**: Login, logout, and account changes
+- **Device Detection**: Track device type and browser
+- **IP Geolocation**: See login locations
+- **Failed Login Alerts**: Monitor unauthorized access attempts
+- **Active Sessions**: View and manage active sessions
+- **2FA Ready**: Two-factor authentication infrastructure
+
 ### Smart Features (No AI APIs Required!)
 - ✨ **Smart Category Suggestions**: Auto-suggests categories based on transaction descriptions
 - 💡 **Spending Insights**: Monthly comparisons, budget alerts, and trend analysis
 - 📊 **Analytics Dashboard**: Real-time spending breakdown by category
-- 🎯 **Budget Recommendations**: AI-powered budget suggestions based on spending history
+- 🎯 **Budget Recommendations**: Smart budget suggestions based on spending history
 - 🔍 **Unusual Spending Detection**: Alerts when spending patterns change significantly
-- 📈 **Financial Health Score**: 0-100 score based on savings, budgets, and debt
 
 ### Integrations
-- 📊 **Google Sheets Sync**: Auto-sync data to Google Sheets
+- 📊 **Google Sheets Sync**: Auto-sync data to Google Sheets (optional)
 - ☁️ **Cloud Backup**: Automated backups to Google Drive
 
 ---
@@ -287,6 +318,99 @@ Content-Type: application/json
 }
 ```
 
+### 🆕 Investments
+
+#### Get Portfolio Summary
+```http
+GET /api/investments/portfolio
+Authorization: Bearer <token>
+```
+
+#### Add Investment
+```http
+POST /api/investments
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "type": "stock",
+  "name": "Reliance Industries",
+  "symbol": "RELIANCE",
+  "quantity": 10,
+  "buyPrice": 2500,
+  "currentPrice": 2650,
+  "buyDate": "2025-01-15",
+  "platform": "Zerodha"
+}
+```
+
+#### Get Gold Price
+```http
+GET /api/investments/gold/price
+Authorization: Bearer <token>
+```
+
+### 🆕 Shared Wallets
+
+#### Create Wallet
+```http
+POST /api/wallets
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Family Expenses",
+  "description": "Shared wallet for family",
+  "type": "family"
+}
+```
+
+#### Join Wallet
+```http
+POST /api/wallets/join
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "inviteCode": "ABC123"
+}
+```
+
+#### Add Shared Expense
+```http
+POST /api/wallets/:walletId/transactions
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Dinner",
+  "amount": 1500,
+  "category": "Food",
+  "type": "expense",
+  "splitType": "equal"
+}
+```
+
+#### Get Balances & Settlements
+```http
+GET /api/wallets/:walletId/balances
+Authorization: Bearer <token>
+```
+
+### 🆕 Activity Logs
+
+#### Get Activity Logs
+```http
+GET /api/activity/logs?limit=50&skip=0
+Authorization: Bearer <token>
+```
+
+#### Get Active Sessions
+```http
+GET /api/activity/sessions
+Authorization: Bearer <token>
+```
+
 ### Smart Features
 
 #### Get Spending Insights
@@ -361,17 +485,54 @@ expenses-tracker-2/
 
 ## 🐛 Known Issues & Fixes
 
-### Issue: Deleted transactions reappear
-**Status**: ✅ Fixed in v1.2.0
+### ✅ Fixed Issues
+
+#### Issue: Deleted transactions reappear
+**Status**: ✅ Fixed in v1.2.1
 **Solution**: Updated `deleteTransaction` to call API
 
-### Issue: Currency showing $ instead of ₹
-**Status**: ✅ Fixed in v1.2.0
+#### Issue: Currency showing $ instead of ₹
+**Status**: ✅ Fixed in v1.2.1
 **Solution**: Updated SpendingInsights to use `formatCurrency`
 
-### Issue: Google Sheets authentication error
+#### Issue: TypeScript build errors
+**Status**: ✅ Fixed in v1.2.2
+**Solution**: Added proper type assertions for UAParser and fetch
+
+### ⚠️ Optional Features
+
+#### Google Sheets Integration
 **Status**: ⚠️ Optional feature
-**Solution**: Add credentials.json to Render environment
+**Note**: Requires credentials.json configuration on Render
+**Impact**: Non-critical, core features work without it
+
+---
+
+## 🆕 What's New in v1.3.0
+
+### Investment Tracking
+- ✅ Portfolio dashboard with real-time P&L
+- ✅ Support for stocks, mutual funds, crypto, gold
+- ✅ Gold price per gram tracking
+- ⏳ External API integration (Yahoo Finance, CoinGecko) - Coming soon
+
+### Shared Wallets
+- ✅ Create and join shared wallets
+- ✅ Smart expense splitting (equal/custom/percentage)
+- ✅ Settlement optimization
+- ⏳ Detailed transaction history view - Coming soon
+
+### Security & Activity
+- ✅ Activity logs with IP geolocation
+- ✅ Device and browser detection
+- ✅ Failed login tracking
+- ⏳ Full 2FA with TOTP and email OTP - Coming soon
+
+### Enhanced Loan Tracker
+- ✅ EMI calculator backend
+- ✅ Prepayment impact analysis
+- ✅ Amortization schedule generation
+- ⏳ Frontend calculator UI - Coming soon
 
 ---
 

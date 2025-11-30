@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import DashboardOverview from '../components/DashboardOverview'
 import CashInHandManager from '../components/CashInHandManager'
 import BankAccountManager from '../components/BankAccountManager'

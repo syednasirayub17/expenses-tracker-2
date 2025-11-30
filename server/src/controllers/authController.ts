@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import generateToken from '../utils/generateToken';
 import { AuthRequest } from '../middleware/auth';
+import activityLoggerService from '../services/activityLoggerService';
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -64,6 +65,14 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
     });
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      // Log successful login
+      await activityLoggerService.logActivity(
+        (user._id as any).toString(),
+        'login',
+        req,
+        true
+      );
+
       res.json({
         _id: user._id,
         username: user.username,
@@ -74,6 +83,15 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
         token: generateToken((user._id as any).toString()),
       });
     } else {
+      // Log failed login attempt
+      if (user) {
+        await activityLoggerService.logActivity(
+          (user._id as any).toString(),
+          'failed_login',
+          req,
+          false
+        );
+      }
       res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error: any) {
@@ -139,6 +157,15 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);
       await user.save();
+
+      // Log password change
+      await activityLoggerService.logActivity(
+        req.userId!,
+        'password_change',
+        req,
+        true
+      );
+
       res.json({ message: 'Password changed successfully' });
     } else {
       res.status(401).json({ message: 'Current password is incorrect' });

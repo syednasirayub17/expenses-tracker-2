@@ -79,22 +79,6 @@ const getUserKey = (key: string, username: string | null): string => {
   return `${key}_${username}`
 }
 
-// Helper function to load data from localStorage
-const loadFromStorage = <T,>(key: string, defaultValue: T, username: string | null): T => {
-  try {
-    const userKey = getUserKey(key, username)
-    const stored = localStorage.getItem(userKey)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      if (Array.isArray(parsed) && parsed.length >= 0) return parsed as T
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as T
-    }
-  } catch (error) {
-    console.error(`Error loading ${key} from localStorage:`, error)
-  }
-  return defaultValue
-}
-
 export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth()
   const username = user?.username || null

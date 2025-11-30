@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import './SecuritySettings.css';
 
 const SecuritySettings = () => {
-    const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+    const twoFactorEnabled = false; // Will be fetched from user profile in future
 
     return (
         <div className="security-settings">

@@ -12,6 +12,8 @@ import accountRoutes from './routes/accountRoutes';
 import adminRoutes from './routes/adminRoutes';
 import smartRoutes from './routes/smartRoutes';
 import activityRoutes from './routes/activityRoutes';
+import investmentRoutes from './routes/investmentRoutes';
+import sharedWalletRoutes from './routes/sharedWalletRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import googleSheets from './services/googleSheets';
 
@@ -78,6 +80,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/smart', smartRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/investments', investmentRoutes);
+app.use('/api/wallets', sharedWalletRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

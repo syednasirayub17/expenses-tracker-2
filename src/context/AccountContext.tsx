@@ -559,7 +559,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  const deleteTransaction = (id: string) => {
+  const deleteTransaction = async (id: string) => {
     const transactionToDelete = transactions.find((t) => t.id === id)
     const updatedTransactions = transactions.filter((t) => t.id !== id)
     setTransactions(updatedTransactions)
@@ -630,9 +630,21 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
 
-    // Immediately save to localStorage
+    // Save to localStorage
     if (username) {
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+    }
+
+    // Delete from database via API
+    try {
+      await accountApi.deleteTransaction(id)
+    } catch (error) {
+      console.error('Error deleting transaction from database:', error)
+      // Revert the local deletion if API call fails
+      setTransactions(transactions)
+      if (username) {
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(transactions))
+      }
     }
   }
 

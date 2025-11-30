@@ -73,6 +73,17 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
         true
       );
 
+      // Check if 2FA is enabled
+      if (user.twoFactorEnabled) {
+        // Return special response indicating 2FA is required
+        return res.json({
+          requires2FA: true,
+          userId: user._id,
+          message: 'Please enter your 2FA code'
+        });
+      }
+
+      // No 2FA, return normal login response
       res.json({
         _id: user._id,
         username: user.username,

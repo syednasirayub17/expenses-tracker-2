@@ -343,14 +343,25 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
     }
 
-    // Try to sync deletion to backend (non-blocking)
+    // IMPORTANT: Try to sync deletion to backend
+    // This is critical - if backend fails, data will come back on next login
     try {
       await accountApi.deleteBankAccount(id)
-      console.log('✓ Account deleted from backend')
+      console.log('✓ Account deleted from backend - deletion is permanent')
     } catch (err: any) {
       // Log error but don't rollback - deletion is already complete locally
-      console.warn('⚠ Failed to delete from backend (local deletion successful):', err.message)
-      // Backend sync will happen on next refresh/login
+      console.error('⚠️ CRITICAL: Failed to delete from backend:', err.message)
+      console.warn('⚠️ Account will reappear on next login unless backend deletion succeeds')
+      console.warn('⚠️ Account ID:', id)
+      console.warn('⚠️ Token present:', localStorage.getItem('token') ? 'Yes' : 'No')
+
+      // Show warning to user
+      alert(
+        '⚠️ Warning: Account deleted locally but backend sync failed.\n\n' +
+        'The account may reappear when you login again.\n\n' +
+        'Error: ' + (err.message || 'Unknown error') + '\n\n' +
+        'Check console for details.'
+      )
     }
   }
 

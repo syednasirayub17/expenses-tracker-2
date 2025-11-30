@@ -46,7 +46,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (username: string, password: string): Promise<boolean | { requires2FA: boolean; userId: string }> => {
     try {
       // Try API first
-      setLoading(true)
       const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000'
 
       try {

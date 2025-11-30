@@ -272,16 +272,38 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Try to delete from backend
     try {
       await accountApi.deleteBankAccount(id)
-    } catch (err) {
+      console.log('Account deleted successfully from backend')
+    } catch (err: any) {
       console.error('Failed to delete bank account from backend:', err)
-      // Rollback on error
-      setBankAccounts(originalAccounts)
-      setTransactions(originalTransactions)
-      if (username) {
-        localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(originalAccounts))
-        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(originalTransactions))
+      console.log('Account ID:', id)
+      console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing')
+
+      // Check if this is a 404 (account doesn't exist in backend)
+      const is404 = err.message?.includes('404')
+
+      if (is404) {
+        // Account was only in localStorage, deletion already complete
+        console.log('Account was local-only, deleted from localStorage successfully')
+        return
       }
-      alert('Failed to delete account. Please try again.')
+
+      // For other errors, ask user if they want to delete locally anyway
+      const deleteLocally = window.confirm(
+        `Failed to delete from server: ${err.message || 'Unknown error'}\n\n` +
+        `Do you want to delete it locally anyway?\n\n` +
+        `Click OK to delete locally, or Cancel to keep the account.`
+      )
+
+      if (!deleteLocally) {
+        // Rollback on user cancel
+        setBankAccounts(originalAccounts)
+        setTransactions(originalTransactions)
+        if (username) {
+          localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(originalAccounts))
+          localStorage.setItem(getUserKey('transactions', username), JSON.stringify(originalTransactions))
+        }
+      }
+      // If user chose OK, keep the deletion (already done optimistically)
     }
   }
 

@@ -308,19 +308,34 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [categories, username])
 
   // Bank Account methods
-  const addBankAccount = (account: Omit<BankAccount, 'id' | 'createdAt'>) => {
-    const newAccount: BankAccount = {
-      ...account,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
+  const addBankAccount = async (account: Omit<BankAccount, 'id' | 'createdAt'>) => {
+    try {
+      // Create account in backend first to get proper ID
+      const createdAccount = await accountApi.createBankAccount({
+        ...account,
+        createdAt: new Date().toISOString()
+      });
+
+      // Backend returns _id, map it to id for frontend
+      const newAccount: BankAccount = {
+        ...createdAccount,
+        id: createdAccount._id || createdAccount.id,
+        createdAt: createdAccount.createdAt || new Date().toISOString()
+      };
+
+      setBankAccounts([...bankAccounts, newAccount]);
+
+      // Save to localStorage
+      if (username) {
+        const updated = [...bankAccounts, newAccount];
+        localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updated));
+      }
+
+      console.log('✓ Bank account created:', newAccount);
+    } catch (err) {
+      console.error('❌ Failed to create bank account:', err);
+      alert('Failed to create account. Please try again.');
     }
-    setBankAccounts([...bankAccounts, newAccount])
-    // Save to backend API
-    accountApi.createBankAccount(newAccount).catch(err => {
-      console.error('Failed to create bank account:', err)
-      // Rollback on error
-      setBankAccounts(bankAccounts)
-    })
   }
 
   const updateBankAccount = (account: BankAccount) => {

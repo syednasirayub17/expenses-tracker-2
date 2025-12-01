@@ -16,9 +16,10 @@ import InvestmentDashboard from '../components/InvestmentDashboard'
 import SharedWalletDashboard from '../components/SharedWalletDashboard'
 import ActivityLogs from '../components/ActivityLogs'
 import SecuritySettings from '../components/SecuritySettings'
+import DataCleanup from '../components/DataCleanup'
 import './Dashboard.css'
 
-type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings'
+type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings' | 'cleanup'
 
 const Dashboard = () => {
   const { user, logout } = useAuth()
@@ -43,6 +44,7 @@ const Dashboard = () => {
     { id: 'wallets' as TabType, label: 'Shared Wallets', icon: '👥' },
     { id: 'activity' as TabType, label: 'Activity Logs', icon: '📝' },
     { id: 'security' as TabType, label: 'Security', icon: '🔐' },
+    { id: 'cleanup' as TabType, label: 'Data Cleanup', icon: '🔧' },
     { id: 'export' as TabType, label: 'Export', icon: '📤' },
     { id: 'profile' as TabType, label: 'Profile', icon: '👤' },
     { id: 'settings' as TabType, label: 'Settings', icon: '⚙️' },
@@ -90,6 +92,7 @@ const Dashboard = () => {
         {activeTab === 'wallets' && <SharedWalletDashboard />}
         {activeTab === 'activity' && <ActivityLogs />}
         {activeTab === 'security' && <SecuritySettings />}
+        {activeTab === 'cleanup' && <DataCleanup />}
         {activeTab === 'export' && <ExportManager />}
         {activeTab === 'profile' && <ProfileManager />}
         {activeTab === 'settings' && <SettingsManager />}

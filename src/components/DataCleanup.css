@@ -1,0 +1,59 @@
+.data-cleanup {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.cleanup-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cleanup-card h2 {
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.cleanup-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.cleanup-button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s;
+}
+
+.cleanup-button:hover:not(:disabled) {
+    background: #5568d3;
+}
+
+.cleanup-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.cleanup-log {
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.cleanup-log div {
+    margin: 2px 0;
+}

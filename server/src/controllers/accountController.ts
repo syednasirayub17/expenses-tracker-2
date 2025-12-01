@@ -48,15 +48,33 @@ export const updateBankAccount = async (req: AuthRequest, res: Response) => {
     }
 };
 
+
 export const deleteBankAccount = async (req: AuthRequest, res: Response) => {
     try {
-        const account = await BankAccount.findByIdAndDelete(req.params.id);
-        if (!account) return res.status(404).json({ message: 'Not found' });
+        const { id } = req.params;
+        const userId = req.userId;
+
+        console.log('Deleting bank account:', { id, userId });
+
+        // Verify account belongs to user before deleting
+        const account = await BankAccount.findOne({ _id: id, userId });
+        if (!account) {
+            console.log('Account not found or unauthorized');
+            return res.status(404).json({ message: 'Account not found or unauthorized' });
+        }
+
+        await BankAccount.findByIdAndDelete(id);
+        console.log('✓ Bank account deleted successfully');
         res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    } catch (err: any) {
+        console.error('❌ Delete bank account error:', err);
+        res.status(500).json({
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
+
 
 // ==================== CREDIT CARDS ====================
 
@@ -101,11 +119,27 @@ export const updateCreditCard = async (req: AuthRequest, res: Response) => {
 
 export const deleteCreditCard = async (req: AuthRequest, res: Response) => {
     try {
-        const card = await CreditCard.findByIdAndDelete(req.params.id);
-        if (!card) return res.status(404).json({ message: 'Not found' });
+        const { id } = req.params;
+        const userId = req.userId;
+
+        console.log('Deleting credit card:', { id, userId });
+
+        // Verify card belongs to user before deleting
+        const card = await CreditCard.findOne({ _id: id, userId });
+        if (!card) {
+            console.log('Credit card not found or unauthorized');
+            return res.status(404).json({ message: 'Credit card not found or unauthorized' });
+        }
+
+        await CreditCard.findByIdAndDelete(id);
+        console.log('✓ Credit card deleted successfully');
         res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    } catch (err: any) {
+        console.error('❌ Delete credit card error:', err);
+        res.status(500).json({
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 
@@ -152,11 +186,27 @@ export const updateLoan = async (req: AuthRequest, res: Response) => {
 
 export const deleteLoan = async (req: AuthRequest, res: Response) => {
     try {
-        const loan = await Loan.findByIdAndDelete(req.params.id);
-        if (!loan) return res.status(404).json({ message: 'Not found' });
+        const { id } = req.params;
+        const userId = req.userId;
+
+        console.log('Deleting loan:', { id, userId });
+
+        // Verify loan belongs to user before deleting
+        const loan = await Loan.findOne({ _id: id, userId });
+        if (!loan) {
+            console.log('Loan not found or unauthorized');
+            return res.status(404).json({ message: 'Loan not found or unauthorized' });
+        }
+
+        await Loan.findByIdAndDelete(id);
+        console.log('✓ Loan deleted successfully');
         res.json({ message: 'Deleted' });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    } catch (err: any) {
+        console.error('❌ Delete loan error:', err);
+        res.status(500).json({
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 

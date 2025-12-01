@@ -1,0 +1,73 @@
+.token-debugger {
+    padding: 20px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.debug-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.debug-card h2 {
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.debug-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.debug-button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    flex: 1;
+    transition: background 0.3s;
+}
+
+.debug-button:hover {
+    background: #5568d3;
+}
+
+.debug-button.secondary {
+    background: #10b981;
+}
+
+.debug-button.secondary:hover {
+    background: #059669;
+}
+
+.debug-info {
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.debug-info h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.debug-info pre {
+    font-family: monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    color: #333;
+    margin: 0;
+}

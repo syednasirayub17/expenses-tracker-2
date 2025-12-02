@@ -26,11 +26,8 @@ export const createBankAccount = async (req: AuthRequest, res: Response) => {
 
 
         res.status(201).json(account);
-    } catch (err: any) {
-        console.error('❌ Create bank account error:', err);
-        res.status(500).json({
-            message: 'Server error',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -41,9 +38,8 @@ export const updateBankAccount = async (req: AuthRequest, res: Response) => {
 
 
         res.json(account);
-    } catch (err: any) {
-        console.error('❌ Update bank account error:', err);
-        res.status(500).json({ message: 'Server error', error: process.env.NODE_ENV === 'development' ? err.message : undefined });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -70,6 +66,7 @@ export const deleteBankAccount = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 
@@ -133,6 +130,7 @@ export const deleteCreditCard = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 
@@ -195,6 +193,7 @@ export const deleteLoan = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 

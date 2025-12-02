@@ -24,7 +24,6 @@ export const createBankAccount = async (req: AuthRequest, res: Response) => {
         const account = new BankAccount({ ...req.body, userId });
         await account.save();
 
-        });
 
         res.status(201).json(account);
     } catch (err: any) {
@@ -32,7 +31,6 @@ export const createBankAccount = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
     }
 };
 
@@ -41,7 +39,6 @@ export const updateBankAccount = async (req: AuthRequest, res: Response) => {
         const account = await BankAccount.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!account) return res.status(404).json({ message: 'Not found' });
 
-        });
 
         res.json(account);
     } catch (err: any) {
@@ -73,7 +70,6 @@ export const deleteBankAccount = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
     }
 };
 
@@ -137,7 +133,6 @@ export const deleteCreditCard = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
     }
 };
 
@@ -200,7 +195,6 @@ export const deleteLoan = async (req: AuthRequest, res: Response) => {
         res.status(500).json({
             message: 'Server error',
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
     }
 };
 

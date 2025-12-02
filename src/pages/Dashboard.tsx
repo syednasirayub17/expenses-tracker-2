@@ -7,6 +7,7 @@ import BankAccountManager from '../components/BankAccountManager'
 import CreditCardManager from '../components/CreditCardManager'
 import LoanManager from '../components/LoanManager'
 import Reports from '../components/Reports'
+import AdvancedReports from '../components/AdvancedReports'
 import BudgetManager from '../components/BudgetManager'
 import SavingsManager from '../components/SavingsManager'
 import ExportManager from '../components/ExportManager'
@@ -20,7 +21,7 @@ import DataCleanup from '../components/DataCleanup'
 import TokenDebugger from '../components/TokenDebugger'
 import './Dashboard.css'
 
-type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings' | 'cleanup' | 'debug'
+type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'advancedReports' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings' | 'cleanup' | 'debug'
 
 const Dashboard = () => {
   const { user, logout } = useAuth()
@@ -39,6 +40,7 @@ const Dashboard = () => {
     { id: 'creditCard' as TabType, label: 'Credit Cards', icon: '💳' },
     { id: 'loan' as TabType, label: 'Loans', icon: '📋' },
     { id: 'reports' as TabType, label: 'Reports', icon: '📈' },
+    { id: 'advancedReports' as TabType, label: 'Advanced Reports', icon: '📊' },
     { id: 'budget' as TabType, label: 'Budget', icon: '💰' },
     { id: 'savings' as TabType, label: 'Savings', icon: '🎯' },
     { id: 'investments' as TabType, label: 'Investments', icon: '📈' },
@@ -81,13 +83,14 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <main className="dashboard-main">
+      <main className="dashboard-main" tabIndex={-1}>
         {activeTab === 'overview' && <DashboardOverview />}
         {activeTab === 'cash' && <CashInHandManager />}
         {activeTab === 'bank' && <BankAccountManager />}
         {activeTab === 'creditCard' && <CreditCardManager />}
         {activeTab === 'loan' && <LoanManager />}
         {activeTab === 'reports' && <Reports />}
+        {activeTab === 'advancedReports' && <AdvancedReports />}
         {activeTab === 'budget' && <BudgetManager />}
         {activeTab === 'savings' && <SavingsManager />}
         {activeTab === 'investments' && <InvestmentDashboard />}

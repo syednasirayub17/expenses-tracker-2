@@ -10,6 +10,7 @@ import {
 } from '../types'
 import { useAuth } from './AuthContext'
 import * as accountApi from '../services/accountApi'
+import * as categoryApi from '../services/categoryApi'
 
 interface AccountContextType {
   bankAccounts: BankAccount[]
@@ -143,13 +144,15 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           creditCardsData,
           loansData,
           transactionsData,
-          budgetsData
+          budgetsData,
+          categoriesData
         ] = await Promise.all([
           accountApi.getBankAccounts(),
           accountApi.getCreditCards(),
           accountApi.getLoans(),
           accountApi.getTransactions(),
-          accountApi.getBudgets()
+          accountApi.getBudgets(),
+          categoryApi.getCategories()
         ])
 
         // CRITICAL: Map MongoDB _id to frontend id
@@ -167,6 +170,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoans(mappedLoans)
         setTransactions(mappedTransactions)
         setBudgets(mappedBudgets)
+        setCategories(categoriesData)
 
         // CRITICAL: Save API data to localStorage for offline access
         if (username) {
@@ -175,6 +179,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           localStorage.setItem(getUserKey('loans', username), JSON.stringify(mappedLoans))
           localStorage.setItem(getUserKey('transactions', username), JSON.stringify(mappedTransactions))
           localStorage.setItem(getUserKey('budgets', username), JSON.stringify(mappedBudgets))
+          localStorage.setItem(getUserKey('categories', username), JSON.stringify(categoriesData))
         }
 
         console.log('✓ Data loaded from API and saved to localStorage:', {
@@ -182,7 +187,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           creditCards: mappedCreditCards.length,
           loans: mappedLoans.length,
           transactions: mappedTransactions.length,
-          budgets: mappedBudgets.length
+          budgets: mappedBudgets.length,
+          categories: `${categoriesData.expense.length} expense, ${categoriesData.income.length} income, ${categoriesData.payment.length} payment`
         })
       } catch (error) {
         console.error('❌ API failed, loading from localStorage:', error)
@@ -869,7 +875,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   // Category methods
-  const addCategory = (type: 'expense' | 'income' | 'payment', category: string) => {
+  const addCategory = async (type: 'expense' | 'income' | 'payment', category: string) => {
     if (!categories[type].includes(category)) {
       const updatedCategories = {
         ...categories,
@@ -880,10 +886,18 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (username) {
         localStorage.setItem(getUserKey('categories', username), JSON.stringify(updatedCategories))
       }
+      // Sync to backend API
+      try {
+        await categoryApi.addCategory(type, category)
+        console.log('✓ Category synced to backend:', category)
+      } catch (err) {
+        console.error('❌ Failed to sync category to backend:', err)
+        // Keep local change even if backend fails
+      }
     }
   }
 
-  const deleteCategory = (type: 'expense' | 'income' | 'payment', category: string) => {
+  const deleteCategory = async (type: 'expense' | 'income' | 'payment', category: string) => {
     const defaultCategories = {
       expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Education', 'Other'],
       income: ['Salary', 'Business', 'Investment', 'Gift', 'Other'],
@@ -898,6 +912,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCategories(updatedCategories)
       if (username) {
         localStorage.setItem(getUserKey('categories', username), JSON.stringify(updatedCategories))
+      }
+      // Sync to backend API
+      try {
+        await categoryApi.deleteCategory(type, category)
+        console.log('✓ Category deletion synced to backend:', category)
+      } catch (err) {
+        console.error('❌ Failed to sync category deletion to backend:', err)
+        // Keep local change even if backend fails
       }
     }
   }

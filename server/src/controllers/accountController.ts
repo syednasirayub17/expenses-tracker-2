@@ -25,12 +25,18 @@ export const createBankAccount = async (req: AuthRequest, res: Response) => {
         const account = new BankAccount({ ...req.body, userId });
         await account.save();
 
-        // Sync to Google Sheets
-        await googleSheets.syncBankAccount(account.toObject());
+        // Sync to Google Sheets (non-blocking - don't fail if this errors)
+        googleSheets.syncBankAccount(account.toObject()).catch(err => {
+            console.warn('⚠️ Google Sheets sync failed (non-critical):', err.message);
+        });
 
         res.status(201).json(account);
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    } catch (err: any) {
+        console.error('❌ Create bank account error:', err);
+        res.status(500).json({
+            message: 'Server error',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 
@@ -39,12 +45,15 @@ export const updateBankAccount = async (req: AuthRequest, res: Response) => {
         const account = await BankAccount.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!account) return res.status(404).json({ message: 'Not found' });
 
-        // Sync to Google Sheets
-        await googleSheets.syncBankAccount(account.toObject());
+        // Sync to Google Sheets (non-blocking)
+        googleSheets.syncBankAccount(account.toObject()).catch(err => {
+            console.warn('⚠️ Google Sheets sync failed:', err.message);
+        });
 
         res.json(account);
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    } catch (err: any) {
+        console.error('❌ Update bank account error:', err);
+        res.status(500).json({ message: 'Server error', error: process.env.NODE_ENV === 'development' ? err.message : undefined });
     }
 };
 
@@ -95,7 +104,7 @@ export const createCreditCard = async (req: AuthRequest, res: Response) => {
         await card.save();
 
         // Sync to Google Sheets
-        await googleSheets.syncCreditCard(card.toObject());
+        googleSheets.syncCreditCard(card.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.status(201).json(card);
     } catch (err) {
@@ -109,7 +118,7 @@ export const updateCreditCard = async (req: AuthRequest, res: Response) => {
         if (!card) return res.status(404).json({ message: 'Not found' });
 
         // Sync to Google Sheets
-        await googleSheets.syncCreditCard(card.toObject());
+        googleSheets.syncCreditCard(card.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.json(card);
     } catch (err) {
@@ -162,7 +171,7 @@ export const createLoan = async (req: AuthRequest, res: Response) => {
         await loan.save();
 
         // Sync to Google Sheets
-        await googleSheets.syncLoan(loan.toObject());
+        googleSheets.syncLoan(loan.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.status(201).json(loan);
     } catch (err) {
@@ -176,7 +185,7 @@ export const updateLoan = async (req: AuthRequest, res: Response) => {
         if (!loan) return res.status(404).json({ message: 'Not found' });
 
         // Sync to Google Sheets
-        await googleSheets.syncLoan(loan.toObject());
+        googleSheets.syncLoan(loan.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.json(loan);
     } catch (err) {
@@ -229,7 +238,7 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
         await budget.save();
 
         // Sync to Google Sheets
-        await googleSheets.syncBudget(budget.toObject());
+        googleSheets.syncBudget(budget.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.status(201).json(budget);
     } catch (err) {
@@ -243,7 +252,7 @@ export const updateBudget = async (req: AuthRequest, res: Response) => {
         if (!budget) return res.status(404).json({ message: 'Not found' });
 
         // Sync to Google Sheets
-        await googleSheets.syncBudget(budget.toObject());
+        googleSheets.syncBudget(budget.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.json(budget);
     } catch (err) {
@@ -280,7 +289,7 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         await transaction.save();
 
         // Sync to Google Sheets
-        await googleSheets.syncTransaction(transaction.toObject());
+        googleSheets.syncTransaction(transaction.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.status(201).json(transaction);
     } catch (err) {
@@ -294,7 +303,7 @@ export const updateTransaction = async (req: AuthRequest, res: Response) => {
         if (!transaction) return res.status(404).json({ message: 'Not found' });
 
         // Sync to Google Sheets
-        await googleSheets.syncTransaction(transaction.toObject());
+        googleSheets.syncTransaction(transaction.toObject()).catch(err => console.warn("⚠️ Sheets sync failed:", err.message));
 
         res.json(transaction);
     } catch (err) {

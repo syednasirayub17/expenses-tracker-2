@@ -152,28 +152,37 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           accountApi.getBudgets()
         ])
 
+        // CRITICAL: Map MongoDB _id to frontend id
+        const mapId = (item: any) => ({ ...item, id: item._id || item.id });
+
+        const mappedBankAccounts = bankAccountsData.map(mapId);
+        const mappedCreditCards = creditCardsData.map(mapId);
+        const mappedLoans = loansData.map(mapId);
+        const mappedTransactions = transactionsData.map(mapId);
+        const mappedBudgets = budgetsData.map(mapId);
+
         // Set state
-        setBankAccounts(bankAccountsData)
-        setCreditCards(creditCardsData)
-        setLoans(loansData)
-        setTransactions(transactionsData)
-        setBudgets(budgetsData)
+        setBankAccounts(mappedBankAccounts)
+        setCreditCards(mappedCreditCards)
+        setLoans(mappedLoans)
+        setTransactions(mappedTransactions)
+        setBudgets(mappedBudgets)
 
         // CRITICAL: Save API data to localStorage for offline access
         if (username) {
-          localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(bankAccountsData))
-          localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(creditCardsData))
-          localStorage.setItem(getUserKey('loans', username), JSON.stringify(loansData))
-          localStorage.setItem(getUserKey('transactions', username), JSON.stringify(transactionsData))
-          localStorage.setItem(getUserKey('budgets', username), JSON.stringify(budgetsData))
+          localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(mappedBankAccounts))
+          localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(mappedCreditCards))
+          localStorage.setItem(getUserKey('loans', username), JSON.stringify(mappedLoans))
+          localStorage.setItem(getUserKey('transactions', username), JSON.stringify(mappedTransactions))
+          localStorage.setItem(getUserKey('budgets', username), JSON.stringify(mappedBudgets))
         }
 
         console.log('✓ Data loaded from API and saved to localStorage:', {
-          bankAccounts: bankAccountsData.length,
-          creditCards: creditCardsData.length,
-          loans: loansData.length,
-          transactions: transactionsData.length,
-          budgets: budgetsData.length
+          bankAccounts: mappedBankAccounts.length,
+          creditCards: mappedCreditCards.length,
+          loans: mappedLoans.length,
+          transactions: mappedTransactions.length,
+          budgets: mappedBudgets.length
         })
       } catch (error) {
         console.error('❌ API failed, loading from localStorage:', error)

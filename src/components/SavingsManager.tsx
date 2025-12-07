@@ -78,7 +78,12 @@ const SavingsManager = () => {
               </div>
               <div className="form-group">
                 <label>Target Date *</label>
-                <input type="date" name="targetDate" defaultValue={editingSavings?.targetDate} required />
+                <input 
+                  type="date" 
+                  name="targetDate" 
+                  defaultValue={editingSavings?.targetDate ? editingSavings.targetDate.split('T')[0] : ''} 
+                  required 
+                />
               </div>
               <div className="form-group">
                 <label>Linked Bank Account (Optional)</label>

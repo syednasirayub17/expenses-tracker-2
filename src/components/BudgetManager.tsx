@@ -109,11 +109,20 @@ const BudgetManager = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Start Date *</label>
-                  <input type="date" name="startDate" defaultValue={editingBudget?.startDate} required />
+                  <input 
+                    type="date" 
+                    name="startDate" 
+                    defaultValue={editingBudget?.startDate ? editingBudget.startDate.split('T')[0] : ''} 
+                    required 
+                  />
                 </div>
                 <div className="form-group">
                   <label>End Date (Optional)</label>
-                  <input type="date" name="endDate" defaultValue={editingBudget?.endDate} />
+                  <input 
+                    type="date" 
+                    name="endDate" 
+                    defaultValue={editingBudget?.endDate ? editingBudget.endDate.split('T')[0] : ''} 
+                  />
                 </div>
               </div>
               <div className="form-actions">

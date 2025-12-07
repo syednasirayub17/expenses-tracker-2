@@ -16,6 +16,7 @@ const LoanManager = () => {
   const handleAddLoan = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const totalPaidEMIs = parseInt(formData.get('totalPaidEMIs') as string) || 0
     const loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths'> = {
       name: formData.get('name') as string,
       loanType: formData.get('loanType') as string,
@@ -26,6 +27,8 @@ const LoanManager = () => {
       tenureMonths: parseInt(formData.get('tenureMonths') as string),
       linkedBankAccountId: formData.get('linkedBankAccountId') as string || undefined,
       paymentMode: (formData.get('paymentMode') as 'auto' | 'manual') || 'manual',
+      totalPaidEMIs: totalPaidEMIs,
+      emiHistory: [],
     }
     if (editingLoan) {
       updateLoan({ ...editingLoan, ...loan })
@@ -56,13 +59,16 @@ const LoanManager = () => {
     }
     addTransaction(transaction)
 
-    // Update loan remaining amount
+    // Update loan remaining amount and increment paid EMIs
     const newRemaining = Math.max(0, selectedLoan.remainingAmount - emiAmount)
     const newRemainingMonths = Math.max(0, selectedLoan.remainingMonths - 1)
+    const newTotalPaidEMIs = (selectedLoan.totalPaidEMIs || 0) + 1
+    
     updateLoan({
       ...selectedLoan,
       remainingAmount: newRemaining,
       remainingMonths: newRemainingMonths,
+      totalPaidEMIs: newTotalPaidEMIs,
     })
 
     setIsEMIFormOpen(false)
@@ -129,12 +135,23 @@ const LoanManager = () => {
                   <input type="number" name="tenureMonths" defaultValue={editingLoan?.tenureMonths} required />
                 </div>
                 <div className="form-group">
-                  <label>Payment Mode *</label>
-                  <select name="paymentMode" defaultValue={editingLoan?.paymentMode} required>
-                    <option value="auto">Auto (Auto-debit)</option>
-                    <option value="manual">Manual</option>
-                  </select>
+                  <label>Total Paid EMIs (so far)</label>
+                  <input 
+                    type="number" 
+                    name="totalPaidEMIs" 
+                    min="0"
+                    defaultValue={editingLoan?.totalPaidEMIs || 0} 
+                    placeholder="0"
+                  />
+                  <small style={{color: '#666', fontSize: '12px', marginTop: '4px', display: 'block'}}>How many EMIs have you already paid?</small>
                 </div>
+              </div>
+              <div className="form-group">
+                <label>Payment Mode *</label>
+                <select name="paymentMode" defaultValue={editingLoan?.paymentMode} required>
+                  <option value="auto">Auto (Auto-debit)</option>
+                  <option value="manual">Manual</option>
+                </select>
               </div>
               <div className="form-group">
                 <label>Linked Bank Account (for EMI payments)</label>
@@ -189,6 +206,11 @@ const LoanManager = () => {
                   <span>{paidPercent.toFixed(1)}% Paid</span>
                   <span>{loan.remainingMonths} months remaining</span>
                 </div>
+                {loan.totalPaidEMIs !== undefined && loan.totalPaidEMIs > 0 && (
+                  <div className="emi-progress-info">
+                    <span className="emi-count">📊 {loan.totalPaidEMIs} / {loan.tenureMonths} EMIs Paid</span>
+                  </div>
+                )}
               </div>
               <div className="loan-details">
                 <p><strong>Interest Rate:</strong> {loan.interestRate}%</p>

@@ -315,7 +315,12 @@ const CreditCardManager = () => {
               </div>
               <div className="form-group">
                 <label>Date *</label>
-                <input type="date" name="date" defaultValue={editingTransaction?.date || new Date().toISOString().split('T')[0]} required />
+                <input 
+                  type="date" 
+                  name="date" 
+                  defaultValue={editingTransaction?.date ? editingTransaction.date.split('T')[0] : new Date().toISOString().split('T')[0]} 
+                  required 
+                />
               </div>
               {selectedCard.linkedBankAccountId && (
                 <div className="form-group">

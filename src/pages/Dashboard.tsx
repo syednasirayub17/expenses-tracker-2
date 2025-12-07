@@ -8,6 +8,7 @@ import CreditCardManager from '../components/CreditCardManager'
 import LoanManager from '../components/LoanManager'
 import Reports from '../components/Reports'
 import AdvancedReports from '../components/AdvancedReports'
+import CategoryReport from '../components/CategoryReport'
 import BudgetManager from '../components/BudgetManager'
 import SavingsManager from '../components/SavingsManager'
 import ExportManager from '../components/ExportManager'
@@ -21,7 +22,7 @@ import DataCleanup from '../components/DataCleanup'
 import TokenDebugger from '../components/TokenDebugger'
 import './Dashboard.css'
 
-type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'advancedReports' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings' | 'cleanup' | 'debug'
+type TabType = 'overview' | 'cash' | 'bank' | 'creditCard' | 'loan' | 'reports' | 'advancedReports' | 'categoryReport' | 'budget' | 'savings' | 'investments' | 'wallets' | 'activity' | 'security' | 'export' | 'profile' | 'settings' | 'cleanup' | 'debug'
 
 const Dashboard = () => {
   const { user, logout } = useAuth()
@@ -41,6 +42,7 @@ const Dashboard = () => {
     { id: 'loan' as TabType, label: 'Loans', icon: '📋' },
     { id: 'reports' as TabType, label: 'Reports', icon: '📈' },
     { id: 'advancedReports' as TabType, label: 'Advanced Reports', icon: '📊' },
+    { id: 'categoryReport' as TabType, label: 'Category Report', icon: '🗂️' },
     { id: 'budget' as TabType, label: 'Budget', icon: '💰' },
     { id: 'savings' as TabType, label: 'Savings', icon: '🎯' },
     { id: 'investments' as TabType, label: 'Investments', icon: '📈' },
@@ -91,6 +93,7 @@ const Dashboard = () => {
         {activeTab === 'loan' && <LoanManager />}
         {activeTab === 'reports' && <Reports />}
         {activeTab === 'advancedReports' && <AdvancedReports />}
+        {activeTab === 'categoryReport' && <CategoryReport />}
         {activeTab === 'budget' && <BudgetManager />}
         {activeTab === 'savings' && <SavingsManager />}
         {activeTab === 'investments' && <InvestmentDashboard />}

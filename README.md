@@ -37,6 +37,16 @@ A full-stack expense tracking application with smart features, built with React,
 
 ### 🆕 Advanced Features
 
+#### 📊 Advanced Reports & Analytics
+- **Drag-and-Drop Report Builder**: Create custom reports with intuitive interface
+- **6 Widget Types**: Spending trends, category breakdown, budget progress, monthly comparison, top expenses, and income vs expenses
+- **Customizable Layouts**: Arrange widgets to match your needs
+- **PDF Export**: Generate professional PDF reports with charts
+- **Branded Category Reports**: Export detailed CSV reports by category
+- **Theme Toggle**: Modern light/dark theme support
+- **Responsive Design**: Works seamlessly on desktop and mobile
+- **Accessibility**: Full keyboard navigation and ARIA attributes
+
 #### 📈 Investment Tracking
 - **Multi-Asset Support**: Track stocks, mutual funds, cryptocurrency, and gold
 - **Portfolio Summary**: Real-time portfolio value with profit/loss calculations
@@ -65,7 +75,7 @@ A full-stack expense tracking application with smart features, built with React,
 - **IP Geolocation**: See login locations
 - **Failed Login Alerts**: Monitor unauthorized access attempts
 - **Active Sessions**: View and manage active sessions
-- **2FA Ready**: Two-factor authentication infrastructure
+- **2FA Support**: Two-factor authentication with TOTP and backup codes
 
 ### Smart Features (No AI APIs Required!)
 - ✨ **Smart Category Suggestions**: Auto-suggests categories based on transaction descriptions
@@ -510,6 +520,15 @@ expenses-tracker-2/
 
 ## 🆕 What's New in v1.3.0
 
+### 🎉 All Critical Bugs Fixed - Production Ready!
+
+### Advanced Reports & Analytics
+- ✅ Drag-and-drop report builder with 6 widget types
+- ✅ Professional PDF export with charts
+- ✅ Branded category reports (CSV)
+- ✅ Modern theme toggle (light/dark)
+- ✅ Full accessibility support
+
 ### Investment Tracking
 - ✅ Portfolio dashboard with real-time P&L
 - ✅ Support for stocks, mutual funds, crypto, gold
@@ -520,19 +539,25 @@ expenses-tracker-2/
 - ✅ Create and join shared wallets
 - ✅ Smart expense splitting (equal/custom/percentage)
 - ✅ Settlement optimization
-- ⏳ Detailed transaction history view - Coming soon
+- ✅ Real-time balance tracking
 
 ### Security & Activity
 - ✅ Activity logs with IP geolocation
 - ✅ Device and browser detection
 - ✅ Failed login tracking
-- ⏳ Full 2FA with TOTP and email OTP - Coming soon
+- ✅ Full 2FA with TOTP and backup codes
 
 ### Enhanced Loan Tracker
 - ✅ EMI calculator backend
 - ✅ Prepayment impact analysis
 - ✅ Amortization schedule generation
-- ⏳ Frontend calculator UI - Coming soon
+
+### Bug Fixes & Improvements
+- ✅ Fixed data persistence and sync issues
+- ✅ Resolved deletion bugs across all entity types
+- ✅ Enhanced security with user verification
+- ✅ Improved performance by removing blocking operations
+- ✅ Better error handling and state management
 
 ---
 
@@ -570,8 +595,8 @@ This project is licensed under the MIT License.
 ## 📞 Support
 
 For issues and questions:
-- Open an issue on GitHub
-- Email: [your-email@example.com]
+- Open an issue on [GitHub](https://github.com/syednasirayub17/expenses-tracker-2/issues)
+- Connect on GitHub: [@syednasirayub17](https://github.com/syednasirayub17)
 
 ---
 

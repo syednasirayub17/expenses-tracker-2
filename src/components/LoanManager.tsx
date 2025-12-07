@@ -5,9 +5,10 @@ import CategoryManager from './CategoryManager'
 import './LoanManager.css'
 
 const LoanManager = () => {
-  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories } = useAccount()
+  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories, updateBankAccount } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isEMIFormOpen, setIsEMIFormOpen] = useState(false)
+  const [isBulkEMIFormOpen, setIsBulkEMIFormOpen] = useState(false)
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null)
   const [showCategoryManager, setShowCategoryManager] = useState(false)
@@ -16,8 +17,7 @@ const LoanManager = () => {
   const handleAddLoan = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const totalPaidEMIs = parseInt(formData.get('totalPaidEMIs') as string) || 0
-    const loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths'> = {
+    const loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths' | 'totalEmisPaid'> = {
       name: formData.get('name') as string,
       loanType: formData.get('loanType') as string,
       principalAmount: parseFloat(formData.get('principalAmount') as string),
@@ -27,8 +27,6 @@ const LoanManager = () => {
       tenureMonths: parseInt(formData.get('tenureMonths') as string),
       linkedBankAccountId: formData.get('linkedBankAccountId') as string || undefined,
       paymentMode: (formData.get('paymentMode') as 'auto' | 'manual') || 'manual',
-      totalPaidEMIs: totalPaidEMIs,
-      emiHistory: [],
     }
     if (editingLoan) {
       updateLoan({ ...editingLoan, ...loan })
@@ -46,6 +44,18 @@ const LoanManager = () => {
 
     const formData = new FormData(e.currentTarget)
     const emiAmount = parseFloat(formData.get('emiAmount') as string) || selectedLoan.emiAmount
+    const linkedAccountId = formData.get('linkedAccountId') as string
+
+    // Deduct from bank account
+    if (linkedAccountId) {
+      const bankAccount = bankAccounts.find(acc => acc.id === linkedAccountId)
+      if (bankAccount) {
+        updateBankAccount({
+          ...bankAccount,
+          balance: bankAccount.balance - emiAmount
+        })
+      }
+    }
 
     const transaction: Omit<Transaction, 'id'> = {
       accountId: selectedLoan.id,
@@ -55,23 +65,75 @@ const LoanManager = () => {
       category: formData.get('category') as string || 'EMI Payment',
       date: formData.get('date') as string || new Date().toISOString().split('T')[0],
       description: `EMI Payment for ${selectedLoan.name}`,
-      linkedAccountId: formData.get('linkedAccountId') as string || selectedLoan.linkedBankAccountId,
+      linkedAccountId: linkedAccountId || selectedLoan.linkedBankAccountId,
     }
     addTransaction(transaction)
 
-    // Update loan remaining amount and increment paid EMIs
+    // Update loan remaining amount and EMIs paid
     const newRemaining = Math.max(0, selectedLoan.remainingAmount - emiAmount)
     const newRemainingMonths = Math.max(0, selectedLoan.remainingMonths - 1)
-    const newTotalPaidEMIs = (selectedLoan.totalPaidEMIs || 0) + 1
-    
+    const newTotalEmisPaid = (selectedLoan.totalEmisPaid || 0) + 1
     updateLoan({
       ...selectedLoan,
       remainingAmount: newRemaining,
       remainingMonths: newRemainingMonths,
-      totalPaidEMIs: newTotalPaidEMIs,
+      totalEmisPaid: newTotalEmisPaid,
     })
 
     setIsEMIFormOpen(false)
+    e.currentTarget.reset()
+  }
+
+  const handlePayBulkEMI = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedLoan) return
+
+    const formData = new FormData(e.currentTarget)
+    const numberOfEMIs = parseInt(formData.get('numberOfEMIs') as string)
+    const linkedAccountId = formData.get('linkedAccountId') as string
+    const totalAmount = selectedLoan.emiAmount * numberOfEMIs
+
+    // Deduct total amount from bank account
+    if (linkedAccountId) {
+      const bankAccount = bankAccounts.find(acc => acc.id === linkedAccountId)
+      if (bankAccount) {
+        if (bankAccount.balance < totalAmount) {
+          alert(`Insufficient balance. Need ₹${totalAmount.toFixed(2)}, but account has only ₹${bankAccount.balance.toFixed(2)}`)
+          return
+        }
+        updateBankAccount({
+          ...bankAccount,
+          balance: bankAccount.balance - totalAmount
+        })
+      }
+    }
+
+    // Create transaction for bulk payment
+    const transaction: Omit<Transaction, 'id'> = {
+      accountId: selectedLoan.id,
+      accountType: 'loan',
+      type: 'payment',
+      amount: totalAmount,
+      category: 'EMI Payment',
+      date: new Date().toISOString().split('T')[0],
+      description: `Bulk EMI Payment (${numberOfEMIs} EMIs) for ${selectedLoan.name}`,
+      linkedAccountId: linkedAccountId,
+    }
+    addTransaction(transaction)
+
+    // Update loan
+    const newRemaining = Math.max(0, selectedLoan.remainingAmount - totalAmount)
+    const newRemainingMonths = Math.max(0, selectedLoan.remainingMonths - numberOfEMIs)
+    const newTotalEmisPaid = (selectedLoan.totalEmisPaid || 0) + numberOfEMIs
+    updateLoan({
+      ...selectedLoan,
+      remainingAmount: newRemaining,
+      remainingMonths: newRemainingMonths,
+      totalEmisPaid: newTotalEmisPaid,
+    })
+
+    setIsBulkEMIFormOpen(false)
+    setSelectedLoan(null)
     e.currentTarget.reset()
   }
 
@@ -135,23 +197,12 @@ const LoanManager = () => {
                   <input type="number" name="tenureMonths" defaultValue={editingLoan?.tenureMonths} required />
                 </div>
                 <div className="form-group">
-                  <label>Total Paid EMIs (so far)</label>
-                  <input 
-                    type="number" 
-                    name="totalPaidEMIs" 
-                    min="0"
-                    defaultValue={editingLoan?.totalPaidEMIs || 0} 
-                    placeholder="0"
-                  />
-                  <small style={{color: '#666', fontSize: '12px', marginTop: '4px', display: 'block'}}>How many EMIs have you already paid?</small>
+                  <label>Payment Mode *</label>
+                  <select name="paymentMode" defaultValue={editingLoan?.paymentMode} required>
+                    <option value="auto">Auto (Auto-debit)</option>
+                    <option value="manual">Manual</option>
+                  </select>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Payment Mode *</label>
-                <select name="paymentMode" defaultValue={editingLoan?.paymentMode} required>
-                  <option value="auto">Auto (Auto-debit)</option>
-                  <option value="manual">Manual</option>
-                </select>
               </div>
               <div className="form-group">
                 <label>Linked Bank Account (for EMI payments)</label>
@@ -206,15 +257,11 @@ const LoanManager = () => {
                   <span>{paidPercent.toFixed(1)}% Paid</span>
                   <span>{loan.remainingMonths} months remaining</span>
                 </div>
-                {loan.totalPaidEMIs !== undefined && loan.totalPaidEMIs > 0 && (
-                  <div className="emi-progress-info">
-                    <span className="emi-count">📊 {loan.totalPaidEMIs} / {loan.tenureMonths} EMIs Paid</span>
-                  </div>
-                )}
               </div>
               <div className="loan-details">
                 <p><strong>Interest Rate:</strong> {loan.interestRate}%</p>
                 <p><strong>EMI Date:</strong> {loan.emiDate}th of each month</p>
+                <p><strong>EMIs Paid:</strong> {loan.totalEmisPaid || 0} / {loan.tenureMonths}</p>
                 <p><strong>Payment Mode:</strong> {loan.paymentMode === 'auto' ? 'Auto-debit' : 'Manual'}</p>
                 {loan.linkedBankAccountId && (
                   <p><strong>Linked Account:</strong> {bankAccounts.find(a => a.id === loan.linkedBankAccountId)?.name}</p>
@@ -223,6 +270,9 @@ const LoanManager = () => {
               <div className="loan-actions">
                 <button onClick={() => { setSelectedLoan(loan); setIsEMIFormOpen(true) }} className="action-button">
                   Pay EMI
+                </button>
+                <button onClick={() => { setSelectedLoan(loan); setIsBulkEMIFormOpen(true) }} className="action-button primary">
+                  Pay Multiple EMIs
                 </button>
                 <button onClick={() => { setEditingLoan(loan); setIsFormOpen(true) }} className="action-button secondary">
                   Edit
@@ -303,13 +353,67 @@ const LoanManager = () => {
                 <select name="linkedAccountId" defaultValue={selectedLoan.linkedBankAccountId} required>
                   <option value="">Select Account</option>
                   {bankAccounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>{acc.name} - ${acc.balance.toFixed(2)}</option>
+                    <option key={acc.id} value={acc.id}>{acc.name} - ₹{acc.balance.toFixed(2)}</option>
                   ))}
                 </select>
               </div>
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsEMIFormOpen(false); setSelectedLoan(null) }}>Cancel</button>
                 <button type="submit">Pay EMI</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isBulkEMIFormOpen && selectedLoan && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>💳 Pay Multiple EMIs - {selectedLoan.name}</h3>
+            <div className="bulk-emi-info">
+              <p><strong>EMI Amount:</strong> ₹{selectedLoan.emiAmount.toFixed(2)}</p>
+              <p><strong>Remaining EMIs:</strong> {selectedLoan.remainingMonths}</p>
+            </div>
+            <form onSubmit={handlePayBulkEMI}>
+              <div className="form-group">
+                <label>Number of EMIs to Pay *</label>
+                <input 
+                  type="number" 
+                  name="numberOfEMIs" 
+                  min="1" 
+                  max={selectedLoan.remainingMonths}
+                  defaultValue="1"
+                  required 
+                  onChange={(e) => {
+                    const num = parseInt(e.target.value) || 0
+                    const total = num * selectedLoan.emiAmount
+                    const infoDiv = document.getElementById('total-amount-info')
+                    if (infoDiv) {
+                      infoDiv.textContent = `Total Amount: ₹${total.toFixed(2)}`
+                    }
+                  }}
+                />
+              </div>
+              <div id="total-amount-info" style={{ padding: '12px', background: '#e7f3ff', borderRadius: '8px', marginBottom: '16px', fontWeight: '600', color: '#0066cc' }}>
+                Total Amount: ₹{selectedLoan.emiAmount.toFixed(2)}
+              </div>
+              <div className="form-group">
+                <label>Pay from Bank Account *</label>
+                <select name="linkedAccountId" defaultValue={selectedLoan.linkedBankAccountId} required>
+                  <option value="">Select Account</option>
+                  {bankAccounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name} - ₹{acc.balance.toFixed(2)} available
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-note" style={{ padding: '12px', background: '#fff3cd', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+                ⚠️ Note: The total amount will be automatically deducted from the selected bank account.
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={() => { setIsBulkEMIFormOpen(false); setSelectedLoan(null) }}>Cancel</button>
+                <button type="submit" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>Pay EMIs</button>
               </div>
             </form>
           </div>

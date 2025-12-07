@@ -458,13 +458,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   // Loan methods
-  const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths'>) => {
+  const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths' | 'totalEmisPaid'>) => {
     const newLoan: Loan = {
       ...loan,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString(),
       remainingAmount: loan.principalAmount,
       remainingMonths: loan.tenureMonths,
+      totalEmisPaid: 0,
     }
     const updatedLoans = [...loans, newLoan]
     setLoans(updatedLoans)

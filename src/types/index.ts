@@ -57,23 +57,10 @@ export interface Loan {
   emiDate: number // Day of month
   tenureMonths: number
   remainingMonths: number
+  totalEmisPaid: number // Track total number of EMIs paid
   createdAt: string
   linkedBankAccountId?: string
   paymentMode: 'auto' | 'manual'
-  totalPaidEMIs?: number // Track how many EMIs have been paid
-  emiHistory?: EMIPayment[] // Track EMI payment history
-}
-
-export interface EMIPayment {
-  id: string
-  loanId: string
-  amount: number
-  date: string
-  principalPaid: number
-  interestPaid: number
-  remainingBalance: number
-  paidFrom?: string // Bank account ID if auto-deducted
-  transactionId?: string // Link to transaction
 }
 
 export interface Budget {

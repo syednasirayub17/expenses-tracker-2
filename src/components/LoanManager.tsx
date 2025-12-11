@@ -17,7 +17,7 @@ const LoanManager = () => {
   const handleAddLoan = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths' | 'totalEmisPaid'> = {
+    const loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths'> = {
       name: formData.get('name') as string,
       loanType: formData.get('loanType') as string,
       principalAmount: parseFloat(formData.get('principalAmount') as string),
@@ -27,6 +27,7 @@ const LoanManager = () => {
       tenureMonths: parseInt(formData.get('tenureMonths') as string),
       linkedBankAccountId: formData.get('linkedBankAccountId') as string || undefined,
       paymentMode: (formData.get('paymentMode') as 'auto' | 'manual') || 'manual',
+      totalEmisPaid: 0,
     }
     if (editingLoan) {
       updateLoan({ ...editingLoan, ...loan })

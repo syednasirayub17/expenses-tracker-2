@@ -59,8 +59,6 @@ const AdvancedAdminDashboard = () => {
         maxUsersAllowed: 1000,
         allowedDomains: []
     })
-    const [selectedUser, setSelectedUser] = useState<User | null>(null)
-    const [showUserModal, setShowUserModal] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'

@@ -20,13 +20,6 @@ interface User {
     }
 }
 
-interface SystemSettings {
-    signupEnabled: boolean
-    maintenanceMode: boolean
-    maxUsersAllowed: number
-    allowedDomains: string[]
-}
-
 interface SystemStats {
     totalUsers: number
     activeUsers: number
@@ -42,7 +35,6 @@ const AdminDashboard = () => {
     const navigate = useNavigate()
     const [users, setUsers] = useState<User[]>([])
     const [searchTerm, setSearchTerm] = useState('')
-    const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'create'>('users')
     const [stats, setStats] = useState<SystemStats>({
         totalUsers: 0,
         activeUsers: 0,
@@ -53,15 +45,6 @@ const AdminDashboard = () => {
         totalTransactions: 0,
         recentUsers: []
     })
-    const [settings, setSettings] = useState<SystemSettings>({
-        signupEnabled: true,
-        maintenanceMode: false,
-        maxUsersAllowed: 1000,
-        allowedDomains: []
-    })
-    const [selectedUser, setSelectedUser] = useState<User | null>(null)
-    const [showUserModal, setShowUserModal] = useState(false)
-    const [showCreateModal, setShowCreateModal] = useState(false)
 
     useEffect(() => {
         // Check if admin is authenticated
@@ -111,11 +94,15 @@ const AdminDashboard = () => {
 
             if (response.ok) {
                 const data = await response.json()
-                setStats({
-                    totalUsers: data.totalUsers,
-                    activeUsers: data.activeUsers,
-                    totalTransactions: data.totalTransactions,
-                    totalAccounts: data.totalAccounts
+                setStats(data.stats || {
+                    totalUsers: data.totalUsers || 0,
+                    activeUsers: data.activeUsers || 0,
+                    inactiveUsers: data.inactiveUsers || 0,
+                    adminUsers: data.adminUsers || 0,
+                    regularUsers: data.regularUsers || 0,
+                    totalAccounts: data.totalAccounts || 0,
+                    totalTransactions: data.totalTransactions || 0,
+                    recentUsers: data.recentUsers || []
                 })
             } else {
                 console.error('Failed to load stats')

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
 import { Loan, Transaction } from '../types'
 import CategoryManager from './CategoryManager'
+import { formatCurrency } from '../utils/currency'
 import './LoanManager.css'
 
 const LoanManager = () => {
@@ -214,15 +215,15 @@ const LoanManager = () => {
                 <div className="loan-stats">
                   <div className="stat-item">
                     <span className="stat-label">Principal</span>
-                    <span className="stat-value">${loan.principalAmount.toFixed(2)}</span>
+                    <span className="stat-value">{formatCurrency(loan.principalAmount)}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">Remaining</span>
-                    <span className="stat-value remaining">${loan.remainingAmount.toFixed(2)}</span>
+                    <span className="stat-value remaining">{formatCurrency(loan.remainingAmount)}</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-label">EMI</span>
-                    <span className="stat-value">${loan.emiAmount.toFixed(2)}</span>
+                    <span className="stat-value">{formatCurrency(loan.emiAmount)}</span>
                   </div>
                 </div>
               </div>
@@ -275,7 +276,7 @@ const LoanManager = () => {
                               <span className="transaction-linked">From: {bankAccounts.find(a => a.id === transaction.linkedAccountId)?.name}</span>
                             )}
                           </div>
-                          <div className="transaction-amount payment">-${transaction.amount.toFixed(2)}</div>
+                          <div className="transaction-amount payment">-{formatCurrency(transaction.amount)}</div>
                         </div>
                       ))}
                   </div>

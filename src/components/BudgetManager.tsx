@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
 import { Budget } from '../types'
+import { formatCurrency } from '../utils/currency'
 import './BudgetManager.css'
 
 const BudgetManager = () => {
@@ -156,16 +157,16 @@ const BudgetManager = () => {
                 <div className="budget-amounts">
                   <div className="amount-item">
                     <span className="amount-label">Budget</span>
-                    <span className="amount-value">${budget.amount.toFixed(2)}</span>
+                    <span className="amount-value">{formatCurrency(budget.amount)}</span>
                   </div>
                   <div className="amount-item">
                     <span className="amount-label">Spent</span>
-                    <span className="amount-value spent">${spent.toFixed(2)}</span>
+                    <span className="amount-value spent">{formatCurrency(spent)}</span>
                   </div>
                   <div className="amount-item">
                     <span className="amount-label">Remaining</span>
                     <span className={`amount-value ${remaining >= 0 ? 'remaining' : 'exceeded'}`}>
-                      ${Math.abs(remaining).toFixed(2)}
+                      {formatCurrency(Math.abs(remaining))}
                     </span>
                   </div>
                 </div>

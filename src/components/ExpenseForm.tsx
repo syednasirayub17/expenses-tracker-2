@@ -34,7 +34,7 @@ const ExpenseForm = ({ expense, onSave, onCancel }: ExpenseFormProps) => {
       setTitle(expense.title)
       setAmount(expense.amount.toString())
       setCategory(expense.category)
-      setDate(expense.date)
+      setDate(expense.date.split('T')[0])
       setDescription(expense.description || '')
     }
   }, [expense])

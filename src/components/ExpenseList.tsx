@@ -1,4 +1,5 @@
 import { Expense } from '../types'
+import { formatCurrency } from '../utils/currency'
 import './ExpenseList.css'
 
 interface ExpenseListProps {
@@ -51,7 +52,7 @@ const ExpenseList = ({ expenses, onEdit, onDelete }: ExpenseListProps) => {
                 <div className="expense-category-badge" style={{ backgroundColor: getCategoryColor(expense.category) }}>
                   {expense.category}
                 </div>
-                <div className="expense-amount">${expense.amount.toFixed(2)}</div>
+                <div className="expense-amount">{formatCurrency(expense.amount)}</div>
               </div>
               <div className="expense-item-body">
                 <h3 className="expense-title">{expense.title}</h3>

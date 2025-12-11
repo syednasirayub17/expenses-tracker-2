@@ -522,7 +522,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           transaction.type === 'income'
             ? account.balance + transaction.amount
             : account.balance - transaction.amount
-        updateBankAccount({ ...account, balance: newBalance })
+        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
       }
     } else if (transaction.accountType === 'creditCard') {
       const card = creditCards.find((c) => c.id === transaction.accountId)
@@ -532,24 +532,41 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const newAvailableCredit = card.limit - newBalance
           updateCreditCard({
             ...card,
-            currentBalance: newBalance,
-            availableCredit: newAvailableCredit,
+            currentBalance: parseFloat(newBalance.toFixed(2)),
+            availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
           })
         } else if (transaction.type === 'payment') {
           const newBalance = Math.max(0, card.currentBalance - transaction.amount)
           const newAvailableCredit = card.limit - newBalance
           updateCreditCard({
             ...card,
-            currentBalance: newBalance,
-            availableCredit: newAvailableCredit,
+            currentBalance: parseFloat(newBalance.toFixed(2)),
+            availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
           })
 
-          // Reconciliation: Deduct from linked bank account
+          // Reconciliation: Deduct from linked bank account AND create bank transaction
           if (transaction.linkedAccountId) {
             const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
             if (linkedAccount) {
               const newBankBalance = linkedAccount.balance - transaction.amount
-              updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+              updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+              
+              // Create a corresponding bank transaction for visibility
+              const bankTransaction: Transaction = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                accountId: transaction.linkedAccountId,
+                accountType: 'bank',
+                type: 'expense',
+                amount: transaction.amount,
+                category: transaction.category || 'Credit Card Payment',
+                date: transaction.date,
+                description: `Payment to ${card.name}`,
+                linkedAccountId: transaction.accountId,
+              }
+              setTransactions([...updatedTransactions, bankTransaction])
+              if (username) {
+                localStorage.setItem(getUserKey('transactions', username), JSON.stringify([...updatedTransactions, bankTransaction]))
+              }
             }
           }
         }
@@ -561,7 +578,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
         updateLoan({
           ...loan,
-          remainingAmount: newRemaining,
+          remainingAmount: parseFloat(newRemaining.toFixed(2)),
           remainingMonths: newRemainingMonths,
         })
 
@@ -570,7 +587,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
           if (linkedAccount) {
             const newBankBalance = linkedAccount.balance - transaction.amount
-            updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
           }
         }
       }
@@ -723,7 +740,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           newBalance = account.balance + transactionToDelete.amount
         }
 
-        updateBankAccount({ ...account, balance: newBalance })
+        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
       }
     }
 
@@ -743,9 +760,18 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const newAvailableCredit = card.limit - newBalance
         updateCreditCard({
           ...card,
-          currentBalance: newBalance,
-          availableCredit: newAvailableCredit,
+          currentBalance: parseFloat(newBalance.toFixed(2)),
+          availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
         })
+
+        // CRITICAL FIX: Restore linked bank account balance for credit card payments
+        if (transactionToDelete.type === 'payment' && transactionToDelete.linkedAccountId) {
+          const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
+          if (linkedAccount) {
+            const newBankBalance = linkedAccount.balance + transactionToDelete.amount
+            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+          }
+        }
       }
     }
 
@@ -761,7 +787,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         updateLoan({
           ...loan,
-          remainingAmount: newRemaining,
+          remainingAmount: parseFloat(newRemaining.toFixed(2)),
           remainingMonths: newRemainingMonths,
         })
 
@@ -770,7 +796,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
           if (linkedAccount) {
             const newBankBalance = linkedAccount.balance + transactionToDelete.amount
-            updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
           }
         }
       }

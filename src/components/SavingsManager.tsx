@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAccount } from '../context/AccountContext'
 import { Savings } from '../types'
+import { formatCurrency } from '../utils/currency'
 import './SavingsManager.css'
 
 const SavingsManager = () => {
@@ -133,15 +134,15 @@ const SavingsManager = () => {
                 <div className="savings-amounts">
                   <div className="amount-item">
                     <span className="amount-label">Current</span>
-                    <span className="amount-value current">${savingsItem.currentAmount.toFixed(2)}</span>
+                    <span className="amount-value current">{formatCurrency(savingsItem.currentAmount)}</span>
                   </div>
                   <div className="amount-item">
                     <span className="amount-label">Target</span>
-                    <span className="amount-value target">${savingsItem.targetAmount.toFixed(2)}</span>
+                    <span className="amount-value target">{formatCurrency(savingsItem.targetAmount)}</span>
                   </div>
                   <div className="amount-item">
                     <span className="amount-label">Remaining</span>
-                    <span className="amount-value remaining">${remaining.toFixed(2)}</span>
+                    <span className="amount-value remaining">{formatCurrency(remaining)}</span>
                   </div>
                 </div>
                 <div className="savings-progress">
@@ -154,7 +155,7 @@ const SavingsManager = () => {
                   <p><strong>Target Date:</strong> {new Date(savingsItem.targetDate).toLocaleDateString()}</p>
                   <p><strong>Days Remaining:</strong> {daysRemaining > 0 ? daysRemaining : 'Past due'}</p>
                   {isOnTrack && (
-                    <p><strong>Required Monthly:</strong> ${requiredMonthly.toFixed(2)}</p>
+                    <p><strong>Required Monthly:</strong> {formatCurrency(requiredMonthly)}</p>
                   )}
                   {savingsItem.description && (
                     <p className="description">{savingsItem.description}</p>

@@ -1,4 +1,5 @@
 import { Expense } from '../types'
+import { formatCurrency } from '../utils/currency'
 import './ExpenseSummary.css'
 
 interface ExpenseSummaryProps {
@@ -37,7 +38,7 @@ const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
           <div className="summary-card-icon">💰</div>
           <div className="summary-card-content">
             <p className="summary-card-label">Total Expenses</p>
-            <p className="summary-card-value">${totalExpenses.toFixed(2)}</p>
+            <p className="summary-card-value">{formatCurrency(totalExpenses)}</p>
           </div>
         </div>
 
@@ -45,7 +46,7 @@ const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
           <div className="summary-card-icon">📅</div>
           <div className="summary-card-content">
             <p className="summary-card-label">This Month</p>
-            <p className="summary-card-value">${thisMonthExpenses.toFixed(2)}</p>
+            <p className="summary-card-value">{formatCurrency(thisMonthExpenses)}</p>
           </div>
         </div>
 
@@ -54,7 +55,7 @@ const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
           <div className="summary-card-content">
             <p className="summary-card-label">Top Category</p>
             <p className="summary-card-value">{topCategory.category}</p>
-            <p className="summary-card-subvalue">${topCategory.amount.toFixed(2)}</p>
+            <p className="summary-card-subvalue">{formatCurrency(topCategory.amount)}</p>
           </div>
         </div>
 

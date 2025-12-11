@@ -35,6 +35,19 @@
   animation-delay: 10s;
 }
 
+.toggle-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #ccc;
+}
+
+.signup-disabled-note {
+  color: #e74c3c;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
 @keyframes float {
   0%, 100% {
     transform: translate(0, 0) scale(1);

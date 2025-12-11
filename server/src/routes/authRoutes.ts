@@ -7,6 +7,7 @@ import {
   updateProfile,
   changePassword,
   resetPassword,
+  getSignupStatus,
 } from '../controllers/authController';
 import { protect } from '../middleware/auth';
 
@@ -16,6 +17,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/complete-2fa', complete2FA);
 router.post('/reset-password', resetPassword);
+router.get('/signup-status', getSignupStatus);
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
 router.put('/change-password', protect, changePassword);

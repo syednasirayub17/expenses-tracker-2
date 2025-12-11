@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
+import SystemSettings from '../models/SystemSettings';
 import generateToken from '../utils/generateToken';
 import { AuthRequest } from '../middleware/auth';
 import activityLoggerService from '../services/activityLoggerService';
@@ -10,6 +11,15 @@ import activityLoggerService from '../services/activityLoggerService';
 // @access  Public
 export const register = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Check if signup is enabled
+    const settings = await (SystemSettings as any).getSettings();
+    if (!settings.signupEnabled) {
+      res.status(403).json({ 
+        message: 'Signup is currently disabled. Please contact the administrator.' 
+      });
+      return;
+    }
+
     const { username, email, password, fullName, phone } = req.body;
 
     // Check if user exists
@@ -157,6 +167,21 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     } else {
       res.status(404).json({ message: 'User not found' });
     }
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Check if signup is enabled
+// @route   GET /api/auth/signup-status
+// @access  Public
+export const getSignupStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const settings = await (SystemSettings as any).getSettings();
+    res.json({ 
+      signupEnabled: settings.signupEnabled,
+      maintenanceMode: settings.maintenanceMode 
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

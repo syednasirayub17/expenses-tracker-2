@@ -5,7 +5,7 @@ import CategoryManager from './CategoryManager'
 import './LoanManager.css'
 
 const LoanManager = () => {
-  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories, updateBankAccount } = useAccount()
+  const { loans, bankAccounts, addLoan, updateLoan, deleteLoan, addTransaction, transactions, categories: accountCategories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isEMIFormOpen, setIsEMIFormOpen] = useState(false)
   const [isBulkEMIFormOpen, setIsBulkEMIFormOpen] = useState(false)
@@ -46,17 +46,7 @@ const LoanManager = () => {
     const emiAmount = parseFloat(formData.get('emiAmount') as string) || selectedLoan.emiAmount
     const linkedAccountId = formData.get('linkedAccountId') as string
 
-    // Deduct from bank account
-    if (linkedAccountId) {
-      const bankAccount = bankAccounts.find(acc => acc.id === linkedAccountId)
-      if (bankAccount) {
-        updateBankAccount({
-          ...bankAccount,
-          balance: bankAccount.balance - emiAmount
-        })
-      }
-    }
-
+    // Create transaction - addTransaction will handle ALL balance updates
     const transaction: Omit<Transaction, 'id'> = {
       accountId: selectedLoan.id,
       accountType: 'loan',
@@ -69,14 +59,10 @@ const LoanManager = () => {
     }
     addTransaction(transaction)
 
-    // Update loan remaining amount and EMIs paid
-    const newRemaining = Math.max(0, selectedLoan.remainingAmount - emiAmount)
-    const newRemainingMonths = Math.max(0, selectedLoan.remainingMonths - 1)
+    // Update loan EMIs paid count
     const newTotalEmisPaid = (selectedLoan.totalEmisPaid || 0) + 1
     updateLoan({
       ...selectedLoan,
-      remainingAmount: newRemaining,
-      remainingMonths: newRemainingMonths,
       totalEmisPaid: newTotalEmisPaid,
     })
 
@@ -93,22 +79,16 @@ const LoanManager = () => {
     const linkedAccountId = formData.get('linkedAccountId') as string
     const totalAmount = selectedLoan.emiAmount * numberOfEMIs
 
-    // Deduct total amount from bank account
+    // Validate sufficient balance
     if (linkedAccountId) {
       const bankAccount = bankAccounts.find(acc => acc.id === linkedAccountId)
-      if (bankAccount) {
-        if (bankAccount.balance < totalAmount) {
-          alert(`Insufficient balance. Need ₹${totalAmount.toFixed(2)}, but account has only ₹${bankAccount.balance.toFixed(2)}`)
-          return
-        }
-        updateBankAccount({
-          ...bankAccount,
-          balance: bankAccount.balance - totalAmount
-        })
+      if (bankAccount && bankAccount.balance < totalAmount) {
+        alert(`Insufficient balance. Need ₹${totalAmount.toFixed(2)}, but account has only ₹${bankAccount.balance.toFixed(2)}`)
+        return
       }
     }
 
-    // Create transaction for bulk payment
+    // Create single transaction for bulk payment - addTransaction handles ALL balance updates
     const transaction: Omit<Transaction, 'id'> = {
       accountId: selectedLoan.id,
       accountType: 'loan',
@@ -121,14 +101,10 @@ const LoanManager = () => {
     }
     addTransaction(transaction)
 
-    // Update loan
-    const newRemaining = Math.max(0, selectedLoan.remainingAmount - totalAmount)
-    const newRemainingMonths = Math.max(0, selectedLoan.remainingMonths - numberOfEMIs)
+    // Update loan EMIs paid count only
     const newTotalEmisPaid = (selectedLoan.totalEmisPaid || 0) + numberOfEMIs
     updateLoan({
       ...selectedLoan,
-      remainingAmount: newRemaining,
-      remainingMonths: newRemainingMonths,
       totalEmisPaid: newTotalEmisPaid,
     })
 

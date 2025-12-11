@@ -6,21 +6,62 @@ interface User {
     _id: string
     username: string
     email: string
-    createdAt: string
-    lastLogin?: string
+    fullName?: string
+    phone?: string
+    role: 'user' | 'admin'
     isActive: boolean
+    twoFactorEnabled: boolean
+    createdAt: string
+    updatedAt: string
+    stats?: {
+        accountCount: number
+        transactionCount: number
+        lastLogin: string
+    }
+}
+
+interface SystemSettings {
+    signupEnabled: boolean
+    maintenanceMode: boolean
+    maxUsersAllowed: number
+    allowedDomains: string[]
+}
+
+interface SystemStats {
+    totalUsers: number
+    activeUsers: number
+    inactiveUsers: number
+    adminUsers: number
+    regularUsers: number
+    totalAccounts: number
+    totalTransactions: number
+    recentUsers: any[]
 }
 
 const AdminDashboard = () => {
     const navigate = useNavigate()
     const [users, setUsers] = useState<User[]>([])
     const [searchTerm, setSearchTerm] = useState('')
-    const [stats, setStats] = useState({
+    const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'create'>('users')
+    const [stats, setStats] = useState<SystemStats>({
         totalUsers: 0,
         activeUsers: 0,
+        inactiveUsers: 0,
+        adminUsers: 0,
+        regularUsers: 0,
+        totalAccounts: 0,
         totalTransactions: 0,
-        totalAccounts: 0
+        recentUsers: []
     })
+    const [settings, setSettings] = useState<SystemSettings>({
+        signupEnabled: true,
+        maintenanceMode: false,
+        maxUsersAllowed: 1000,
+        allowedDomains: []
+    })
+    const [selectedUser, setSelectedUser] = useState<User | null>(null)
+    const [showUserModal, setShowUserModal] = useState(false)
+    const [showCreateModal, setShowCreateModal] = useState(false)
 
     useEffect(() => {
         // Check if admin is authenticated

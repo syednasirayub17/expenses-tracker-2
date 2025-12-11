@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import TwoFactorVerify from '../components/TwoFactorVerify'
@@ -15,8 +15,17 @@ const Login = () => {
   const [success, setSuccess] = useState('')
   const [show2FA, setShow2FA] = useState(false)
   const [userId2FA, setUserId2FA] = useState('')
+  const [signupEnabled, setSignupEnabled] = useState(true)
   const { login, complete2FALogin, register, resetPassword } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check if signup is enabled
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/signup-status`)
+      .then(res => res.json())
+      .then(data => setSignupEnabled(data.signupEnabled))
+      .catch(() => setSignupEnabled(true)) // Default to enabled on error
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,6 +77,10 @@ const Login = () => {
         setError('Invalid username or password')
       }
     } else {
+      if (!signupEnabled) {
+        setError('Signup is currently disabled. Please contact the administrator.')
+        return
+      }
       if (!username || !email || !password) {
         setError('All fields are required')
         return
@@ -76,7 +89,7 @@ const Login = () => {
       if (success) {
         navigate('/dashboard')
       } else {
-        setError('Username already exists')
+        setError('Username already exists or signup is disabled')
       }
     }
   }
@@ -200,6 +213,10 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    if (isLogin && !signupEnabled) {
+                      setError('Signup is currently disabled. Please contact the administrator.')
+                      return
+                    }
                     setIsLogin(!isLogin)
                     setError('')
                     setSuccess('')
@@ -209,9 +226,14 @@ const Login = () => {
                     setConfirmPassword('')
                   }}
                   className="toggle-button"
+                  disabled={isLogin && !signupEnabled}
+                  title={isLogin && !signupEnabled ? 'Signup is currently disabled' : ''}
                 >
                   {isLogin ? 'Sign Up' : 'Login'}
                 </button>
+                {isLogin && !signupEnabled && (
+                  <span className="signup-disabled-note"> (Disabled)</span>
+                )}
               </p>
             </div>
           </>

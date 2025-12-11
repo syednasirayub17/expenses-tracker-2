@@ -5,7 +5,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AdminLogin from './pages/AdminLogin'
-import AdminDashboard from './pages/Admin/AdminDashboard'
+import AdvancedAdminDashboard from './pages/Admin/AdvancedAdminDashboard'
 import './App.css'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -42,7 +42,7 @@ function App() {
                 path="/admin/dashboard"
                 element={
                   <AdminRoute>
-                    <AdminDashboard />
+                    <AdvancedAdminDashboard />
                   </AdminRoute>
                 }
               />

@@ -54,7 +54,16 @@ systemSettingsSchema.statics.getSettings = async function (): Promise<ISystemSet
 };
 
 systemSettingsSchema.statics.updateSettings = async function (updates: Partial<ISystemSettings>): Promise<ISystemSettings> {
-  let settings = await this.getSettings();
+  // Use this.findOne() instead of this.getSettings() to avoid circular reference
+  let settings = await this.findOne();
+  if (!settings) {
+    settings = await this.create({
+      signupEnabled: true,
+      maintenanceMode: false,
+      maxUsersAllowed: 1000,
+      allowedDomains: [],
+    });
+  }
   Object.assign(settings, updates);
   await settings.save();
   return settings;

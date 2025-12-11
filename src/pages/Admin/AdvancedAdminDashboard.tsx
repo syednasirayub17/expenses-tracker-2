@@ -60,6 +60,8 @@ const AdvancedAdminDashboard = () => {
         allowedDomains: []
     })
     const [loading, setLoading] = useState(false)
+    const [passwordChangeUserId, setPasswordChangeUserId] = useState<string | null>(null)
+    const [newPassword, setNewPassword] = useState('')
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -301,6 +303,39 @@ const AdvancedAdminDashboard = () => {
         }
     }
 
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!passwordChangeUserId || !newPassword) {
+            alert('Please enter a new password')
+            return
+        }
+
+        setLoading(true)
+        try {
+            const response = await fetch(`${API_URL}/api/admin/users/${passwordChangeUserId}/password`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ newPassword })
+            })
+
+            if (response.ok) {
+                alert('Password changed successfully!')
+                setPasswordChangeUserId(null)
+                setNewPassword('')
+            } else {
+                const error = await response.json()
+                alert(error.message || 'Failed to change password')
+            }
+        } catch (error) {
+            alert('Failed to change password')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const handleLogout = () => {
         localStorage.removeItem('adminUser')
         localStorage.removeItem('isAdminAuthenticated')
@@ -455,6 +490,13 @@ const AdvancedAdminDashboard = () => {
                                                         {user.isActive ? '🔴' : '🟢'}
                                                     </button>
                                                     <button
+                                                        className="btn-password"
+                                                        onClick={() => setPasswordChangeUserId(user._id)}
+                                                        title="Change Password"
+                                                    >
+                                                        🔑
+                                                    </button>
+                                                    <button
                                                         className="btn-delete"
                                                         onClick={() => handleDeleteUser(user._id)}
                                                         title="Delete User"
@@ -579,6 +621,44 @@ const AdvancedAdminDashboard = () => {
                     </div>
                 )}
             </div>
+
+            {/* Password Change Modal */}
+            {passwordChangeUserId && (
+                <div className="modal-overlay" onClick={() => setPasswordChangeUserId(null)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h3>🔑 Change User Password</h3>
+                        <form onSubmit={handleChangePassword}>
+                            <div className="form-group">
+                                <label>New Password *</label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                    required
+                                    minLength={6}
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="form-actions">
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setPasswordChangeUserId(null)
+                                        setNewPassword('')
+                                    }}
+                                    className="btn-cancel"
+                                >
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn-save" disabled={loading}>
+                                    {loading ? 'Changing...' : '🔑 Change Password'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

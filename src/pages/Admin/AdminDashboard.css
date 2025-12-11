@@ -273,6 +273,20 @@
     background: #f3f4f6;
 }
 
+.btn-password {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-password:hover {
+    background: #dbeafe;
+}
+
 /* Tabs */
 .admin-tabs {
     display: flex;

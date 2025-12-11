@@ -10,6 +10,7 @@ import {
   getSystemSettings,
   updateSystemSettings,
   getSystemStats,
+  changeUserPassword,
 } from '../controllers/adminController';
 
 const router = express.Router();
@@ -23,6 +24,7 @@ router.get('/users', getAllUsers);
 router.post('/users', createUser);
 router.put('/users/:userId/role', updateUserRole);
 router.put('/users/:userId/toggle-status', toggleUserStatus);
+router.put('/users/:userId/password', changeUserPassword);
 router.delete('/users/:userId', deleteUser);
 
 // System settings

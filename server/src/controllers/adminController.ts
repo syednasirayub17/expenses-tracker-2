@@ -262,3 +262,34 @@ export const getSystemStats = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ success: false, message: 'Failed to fetch statistics' });
   }
 };
+
+// Change user password
+export const changeUserPassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    // Update password (will be hashed by pre-save hook)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Password changed successfully' 
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password' });
+  }
+};

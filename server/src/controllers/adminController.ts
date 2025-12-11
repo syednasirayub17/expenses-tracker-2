@@ -153,7 +153,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
 // Get system settings
 export const getSystemSettings = async (req: AuthRequest, res: Response) => {
   try {
-    const settings = await (SystemSettings as any).getSettings();
+    const settings = await SystemSettings.getSettings();
     res.json({ success: true, settings });
   } catch (error) {
     console.error('Error fetching system settings:', error);
@@ -166,7 +166,7 @@ export const updateSystemSettings = async (req: AuthRequest, res: Response) => {
   try {
     const { signupEnabled, maintenanceMode, maxUsersAllowed, allowedDomains } = req.body;
     
-    const settings = await (SystemSettings as any).updateSettings({
+    const settings = await SystemSettings.updateSettings({
       signupEnabled,
       maintenanceMode,
       maxUsersAllowed,

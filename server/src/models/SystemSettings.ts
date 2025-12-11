@@ -9,6 +9,11 @@ export interface ISystemSettings extends mongoose.Document {
   updatedAt: Date;
 }
 
+interface ISystemSettingsModel extends mongoose.Model<ISystemSettings> {
+  getSettings(): Promise<ISystemSettings>;
+  updateSettings(updates: Partial<ISystemSettings>): Promise<ISystemSettings>;
+}
+
 const systemSettingsSchema = new mongoose.Schema(
   {
     signupEnabled: {
@@ -35,7 +40,7 @@ const systemSettingsSchema = new mongoose.Schema(
 );
 
 // Singleton pattern - only one settings document
-systemSettingsSchema.statics.getSettings = async function () {
+systemSettingsSchema.statics.getSettings = async function (): Promise<ISystemSettings> {
   let settings = await this.findOne();
   if (!settings) {
     settings = await this.create({
@@ -48,11 +53,11 @@ systemSettingsSchema.statics.getSettings = async function () {
   return settings;
 };
 
-systemSettingsSchema.statics.updateSettings = async function (updates: Partial<ISystemSettings>) {
+systemSettingsSchema.statics.updateSettings = async function (updates: Partial<ISystemSettings>): Promise<ISystemSettings> {
   let settings = await this.getSettings();
   Object.assign(settings, updates);
   await settings.save();
   return settings;
 };
 
-export default mongoose.model<ISystemSettings>('SystemSettings', systemSettingsSchema);
+export default mongoose.model<ISystemSettings, ISystemSettingsModel>('SystemSettings', systemSettingsSchema);

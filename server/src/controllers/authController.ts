@@ -12,7 +12,7 @@ import activityLoggerService from '../services/activityLoggerService';
 export const register = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // Check if signup is enabled
-    const settings = await (SystemSettings as any).getSettings();
+    const settings = await SystemSettings.getSettings();
     if (!settings.signupEnabled) {
       res.status(403).json({ 
         message: 'Signup is currently disabled. Please contact the administrator.' 
@@ -177,7 +177,7 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 // @access  Public
 export const getSignupStatus = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const settings = await (SystemSettings as any).getSettings();
+    const settings = await SystemSettings.getSettings();
     res.json({ 
       signupEnabled: settings.signupEnabled,
       maintenanceMode: settings.maintenanceMode 

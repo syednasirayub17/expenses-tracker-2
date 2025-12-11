@@ -6,7 +6,7 @@ import CategoryManager from './CategoryManager'
 import './CreditCardManager.css'
 
 const CreditCardManager = () => {
-  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, transactions, deleteTransaction, categories: accountCategories } = useAccount()
+  const { creditCards, bankAccounts, addCreditCard, updateCreditCard, deleteCreditCard, addTransaction, updateTransaction, transactions, deleteTransaction, categories: accountCategories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CreditCard | null>(null)
@@ -55,10 +55,8 @@ const CreditCardManager = () => {
     }
 
     if (editingTransaction) {
-      // For editing, we need to delete the old transaction and add the new one
-      // since the useAccount context doesn't have an updateTransaction function
-      deleteTransaction(editingTransaction.id)
-      addTransaction(transaction)
+      // Use updateTransaction instead of delete+add to prevent double processing
+      updateTransaction({ ...transaction, id: editingTransaction.id })
       setEditingTransaction(null)
     } else {
       addTransaction(transaction)
@@ -149,9 +147,6 @@ const CreditCardManager = () => {
                                 <span className={`transaction-type ${transaction.type}`}>{transaction.type}</span>
                                 <span className="transaction-category">{transaction.category}</span>
                                 <span className="transaction-date">{formatDate(transaction.date)}</span>
-                              </div>
-                              <div className={`transaction-amount ${transaction.type}`}>
-                                {transaction.type === 'payment' ? '+' : '-'}{formatCurrency(transaction.amount)}
                               </div>
                               <div className="transaction-actions">
                                 <div className={`transaction-amount ${transaction.type}`}>

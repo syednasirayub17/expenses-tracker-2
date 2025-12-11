@@ -641,7 +641,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           newBalance = newBalance - transaction.amount
         }
 
-        updateBankAccount({ ...account, balance: newBalance })
+        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
       }
     }
 
@@ -693,7 +693,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         updateLoan({
           ...loan,
-          remainingAmount: newRemaining,
+          remainingAmount: parseFloat(newRemaining.toFixed(2)),
           remainingMonths: newRemainingMonths,
         })
 
@@ -710,7 +710,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
             // Apply new transaction effect
             newBankBalance = newBankBalance - transaction.amount
-            updateBankAccount({ ...linkedAccount, balance: newBankBalance })
+            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
           }
         }
       }

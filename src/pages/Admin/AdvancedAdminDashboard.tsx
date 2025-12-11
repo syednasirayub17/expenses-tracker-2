@@ -91,6 +91,14 @@ const AdvancedAdminDashboard = () => {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             })
 
+            if (response.status === 403) {
+                // User is not admin, redirect to login
+                alert('Access denied. Admin privileges required.')
+                localStorage.removeItem('isAdminAuthenticated')
+                navigate('/admin/login')
+                return
+            }
+
             if (response.ok) {
                 const data = await response.json()
                 setUsers(data.users || data || [])
@@ -106,6 +114,11 @@ const AdvancedAdminDashboard = () => {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             })
 
+            if (response.status === 403) {
+                // User is not admin, redirect to login
+                return
+            }
+
             if (response.ok) {
                 const data = await response.json()
                 setStats(data.stats || data)
@@ -120,6 +133,11 @@ const AdvancedAdminDashboard = () => {
             const response = await fetch(`${API_URL}/api/admin/settings`, {
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             })
+
+            if (response.status === 403) {
+                // User is not admin, redirect to login
+                return
+            }
 
             if (response.ok) {
                 const data = await response.json()

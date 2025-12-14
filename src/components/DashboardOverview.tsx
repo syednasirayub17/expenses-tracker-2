@@ -194,45 +194,12 @@ const DashboardOverview = () => {
       </div>
 
       <div className="overview-charts">
-        <div className="chart-section">
-          <h3>Monthly Expenses by Category</h3>
+        <div className="chart-section expenses-3d">
+          <h3>📊 Monthly Expenses by Category</h3>
           {expenseCategories.length > 0 ? (
             <PieChart data={expenseCategories} />
           ) : (
             <p className="no-data">No expenses this month</p>
-          )}
-        </div>
-
-        <div className="chart-section">
-          <h3>Budget Status</h3>
-          {budgetStatus.length > 0 ? (
-            <div className="budget-status-list">
-              {budgetStatus.map((budget) => (
-                <div key={budget.category} className="budget-status-item">
-                  <div className="budget-header">
-                    <span className="budget-category">{budget.category}</span>
-                    <span className={`budget-percentage ${budget.percentage >= 100 ? 'exceeded' : budget.percentage >= 80 ? 'warning' : 'good'}`}>
-                      {budget.percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="budget-bar">
-                    <div
-                      className={`budget-bar-fill ${budget.percentage >= 100 ? 'exceeded' : budget.percentage >= 80 ? 'warning' : 'good'}`}
-                      style={{ width: `${Math.min(budget.percentage, 100)}%` }}
-                    />
-                  </div>
-                  <div className="budget-details">
-                    <span>Spent: {formatCurrency(budget.spent)}</span>
-                    <span>Budget: {formatCurrency(budget.budget)}</span>
-                    <span className={budget.remaining >= 0 ? 'positive' : 'negative'}>
-                      {budget.remaining >= 0 ? 'Remaining' : 'Over'}: {formatCurrency(Math.abs(budget.remaining))}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="no-data">No active budgets</p>
           )}
         </div>
       </div>

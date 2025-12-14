@@ -6,10 +6,12 @@ import CategoryManager from './CategoryManager'
 import './BankAccountManager.css'
 
 const BankAccountManager = () => {
-  const { bankAccounts, creditCards, addBankAccount, updateBankAccount, deleteBankAccount, addTransaction, updateTransaction, deleteTransaction, transactions, categories } = useAccount()
+  const { bankAccounts, creditCards, loans, addBankAccount, updateBankAccount, deleteBankAccount, addTransaction, updateTransaction, deleteTransaction, transactions, categories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
   const [isCreditCardPaymentFormOpen, setIsCreditCardPaymentFormOpen] = useState(false)
+  const [isSelfTransferFormOpen, setIsSelfTransferFormOpen] = useState(false)
+  const [isLoanPaymentFormOpen, setIsLoanPaymentFormOpen] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null)
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
@@ -125,6 +127,90 @@ const BankAccountManager = () => {
     e.currentTarget.reset()
   }
 
+  const handleSelfTransfer = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedAccount) return
+
+    const formData = new FormData(e.currentTarget)
+    const toAccountId = formData.get('toAccountId') as string
+    const amount = parseFloat(parseFloat(formData.get('amount') as string).toFixed(2))
+    const date = formData.get('date') as string
+    const description = formData.get('description') as string || 'Self Bank Transfer'
+
+    // Create dual transactions (debit from source + credit to destination)
+    // Transaction 1: Deduct from source account
+    const debitTransaction: Omit<Transaction, 'id'> = {
+      accountId: selectedAccount.id,
+      accountType: 'bank',
+      type: 'payment',
+      amount: amount,
+      category: 'Bank Transfer',
+      date: date,
+      description: description,
+      linkedAccountId: toAccountId,
+    }
+    addTransaction(debitTransaction)
+
+    // Transaction 2: Credit to destination account
+    const creditTransaction: Omit<Transaction, 'id'> = {
+      accountId: toAccountId,
+      accountType: 'bank',
+      type: 'income',
+      amount: amount,
+      category: 'Bank Transfer',
+      date: date,
+      description: description,
+      linkedAccountId: selectedAccount.id,
+    }
+    addTransaction(creditTransaction)
+
+    setIsSelfTransferFormOpen(false)
+    setSelectedAccount(null)
+    e.currentTarget.reset()
+  }
+
+  const handleLoanPayment = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedAccount) return
+
+    const formData = new FormData(e.currentTarget)
+    const loanId = formData.get('loanId') as string
+    const amount = parseFloat(parseFloat(formData.get('amount') as string).toFixed(2))
+    const date = formData.get('date') as string
+    const description = formData.get('description') as string || 'Loan EMI Payment'
+
+    // Create dual transactions (bank debit + loan payment)
+    // Transaction 1: Deduct from bank account
+    const bankTransaction: Omit<Transaction, 'id'> = {
+      accountId: selectedAccount.id,
+      accountType: 'bank',
+      type: 'payment',
+      amount: amount,
+      category: 'Loan EMI',
+      date: date,
+      description: description,
+      linkedAccountId: loanId,
+    }
+    addTransaction(bankTransaction)
+
+    // Transaction 2: Credit to loan (reduces debt)
+    const loanTransaction: Omit<Transaction, 'id'> = {
+      accountId: loanId,
+      accountType: 'loan',
+      type: 'payment',
+      amount: amount,
+      category: 'Payment Received',
+      date: date,
+      description: description,
+      linkedAccountId: selectedAccount.id,
+    }
+    addTransaction(loanTransaction)
+
+    setIsLoanPaymentFormOpen(false)
+    setSelectedAccount(null)
+    e.currentTarget.reset()
+  }
+
   return (
     <div className="bank-account-manager">
       <div className="section-header">
@@ -194,8 +280,14 @@ const BankAccountManager = () => {
                 <button onClick={() => { setSelectedAccount(account); setIsTransactionFormOpen(true) }} className="action-button">
                   Add Transaction
                 </button>
+                <button onClick={() => { setSelectedAccount(account); setIsSelfTransferFormOpen(true) }} className="action-button success">
+                  Self Transfer
+                </button>
                 <button onClick={() => { setSelectedAccount(account); setIsCreditCardPaymentFormOpen(true) }} className="action-button primary">
                   Pay Credit Card
+                </button>
+                <button onClick={() => { setSelectedAccount(account); setIsLoanPaymentFormOpen(true) }} className="action-button warning">
+                  Pay Loan
                 </button>
                 <button onClick={() => { setEditingAccount(account); setIsFormOpen(true) }} className="action-button secondary">
                   Edit
@@ -396,6 +488,90 @@ const BankAccountManager = () => {
               </div>
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsCreditCardPaymentFormOpen(false); setSelectedAccount(null) }}>Cancel</button>
+                <button type="submit">Process Payment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isSelfTransferFormOpen && selectedAccount && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Self Bank Transfer - {selectedAccount.name}</h3>
+            <form onSubmit={handleSelfTransfer}>
+              <div className="form-group">
+                <label>Transfer To Account *</label>
+                <select name="toAccountId" required>
+                  <option value="">-- Select Destination Account --</option>
+                  {bankAccounts.filter(acc => acc.id !== selectedAccount.id).map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} ({account.accountNumber}) - Balance: {formatCurrency(account.balance)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Transfer Amount *</label>
+                <input type="number" name="amount" step="0.01" min="0.01" required />
+              </div>
+              <div className="form-group">
+                <label>Transfer Date *</label>
+                <input 
+                  type="date" 
+                  name="date" 
+                  defaultValue={new Date().toISOString().split('T')[0]} 
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea name="description" rows={2} placeholder="e.g., Emergency transfer, Savings" />
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={() => { setIsSelfTransferFormOpen(false); setSelectedAccount(null) }}>Cancel</button>
+                <button type="submit">Transfer Funds</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isLoanPaymentFormOpen && selectedAccount && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Pay Loan EMI - {selectedAccount.name}</h3>
+            <form onSubmit={handleLoanPayment}>
+              <div className="form-group">
+                <label>Select Loan *</label>
+                <select name="loanId" required>
+                  <option value="">-- Select Loan --</option>
+                  {loans.map((loan) => (
+                    <option key={loan.id} value={loan.id}>
+                      {loan.name} - Remaining: {formatCurrency(loan.remainingAmount)} (EMI: {formatCurrency(loan.emiAmount)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Payment Amount *</label>
+                <input type="number" name="amount" step="0.01" min="0.01" required />
+              </div>
+              <div className="form-group">
+                <label>Payment Date *</label>
+                <input 
+                  type="date" 
+                  name="date" 
+                  defaultValue={new Date().toISOString().split('T')[0]} 
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea name="description" rows={2} placeholder="e.g., Monthly EMI, Extra payment" />
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={() => { setIsLoanPaymentFormOpen(false); setSelectedAccount(null) }}>Cancel</button>
                 <button type="submit">Process Payment</button>
               </div>
             </form>

@@ -9,7 +9,6 @@ const DashboardOverview = () => {
     creditCards, 
     loans, 
     transactions, 
-    budgets, 
     savings,
     showCreditCardBalance,
     showLoanBalance,
@@ -76,26 +75,6 @@ const DashboardOverview = () => {
   const totalSavingsTarget = savings.reduce((sum, s) => sum + s.targetAmount, 0)
   const totalSavingsCurrent = savings.reduce((sum, s) => sum + s.currentAmount, 0)
   const savingsProgress = totalSavingsTarget > 0 ? (totalSavingsCurrent / totalSavingsTarget) * 100 : 0
-
-  // Budget status
-  const activeBudgets = budgets.filter((b) => {
-    const start = new Date(b.startDate)
-    const end = b.endDate ? new Date(b.endDate) : new Date(start.getFullYear(), start.getMonth() + 1, 0)
-    return now >= start && now <= end
-  })
-
-  const budgetStatus = activeBudgets.map((budget) => {
-    const budgetExpenses = currentMonthTransactions
-      .filter((t) => t.type === 'expense' && t.category === budget.category)
-      .reduce((sum, t) => sum + t.amount, 0)
-    return {
-      category: budget.category,
-      budget: budget.amount,
-      spent: budgetExpenses,
-      remaining: budget.amount - budgetExpenses,
-      percentage: (budgetExpenses / budget.amount) * 100,
-    }
-  })
 
   return (
     <div className="dashboard-overview">

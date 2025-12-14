@@ -25,6 +25,12 @@ interface AccountContextType {
     income: string[]
     payment: string[]
   }
+  
+  // Visibility settings
+  showCreditCardBalance: boolean
+  showLoanBalance: boolean
+  toggleCreditCardVisibility: () => void
+  toggleLoanVisibility: () => void
 
   // Bank Account methods
   addBankAccount: (account: Omit<BankAccount, 'id' | 'createdAt'>) => void
@@ -92,6 +98,17 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [savings, setSavings] = useState<Savings[]>([])
   const [reconciliations, setReconciliations] = useState<AccountReconciliation[]>([])
+  
+  // Visibility settings - load from localStorage
+  const [showCreditCardBalance, setShowCreditCardBalance] = useState<boolean>(() => {
+    const saved = localStorage.getItem(getUserKey('showCreditCardBalance', username))
+    return saved !== null ? JSON.parse(saved) : true
+  })
+  const [showLoanBalance, setShowLoanBalance] = useState<boolean>(() => {
+    const saved = localStorage.getItem(getUserKey('showLoanBalance', username))
+    return saved !== null ? JSON.parse(saved) : true
+  })
+  
   const [categories, setCategories] = useState<{
     expense: string[]
     income: string[]
@@ -161,8 +178,83 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const mappedBankAccounts = bankAccountsData.map(mapId);
         const mappedCreditCards = creditCardsData.map(mapId);
         const mappedLoans = loansData.map(mapId);
-        const mappedTransactions = transactionsData.map(mapId);
         const mappedBudgets = budgetsData.map(mapId);
+
+        // CRITICAL FIX: Map transaction IDs AND update accountId references
+        // This ensures transactions point to the correct MongoDB _id of accounts
+        const idMapping: { [oldId: string]: string } = {}
+        
+        // Build mapping from old localStorage IDs to new MongoDB _ids
+        const storedBankAccounts = localStorage.getItem(getUserKey('bankAccounts', username))
+        const storedCreditCards = localStorage.getItem(getUserKey('creditCards', username))
+        const storedLoans = localStorage.getItem(getUserKey('loans', username))
+
+        if (storedBankAccounts) {
+          try {
+            const oldBanks = JSON.parse(storedBankAccounts)
+            oldBanks.forEach((oldBank: any) => {
+              const newBank = mappedBankAccounts.find((b: BankAccount) => 
+                b.accountNumber === oldBank.accountNumber && b.name === oldBank.name
+              )
+              if (newBank && oldBank.id !== newBank.id) {
+                idMapping[oldBank.id] = newBank.id
+              }
+            })
+          } catch (err) {
+            console.error('Error building bank account ID mapping:', err)
+          }
+        }
+
+        if (storedCreditCards) {
+          try {
+            const oldCards = JSON.parse(storedCreditCards)
+            oldCards.forEach((oldCard: any) => {
+              const newCard = mappedCreditCards.find((c: CreditCard) => 
+                c.cardNumber === oldCard.cardNumber && c.name === oldCard.name
+              )
+              if (newCard && oldCard.id !== newCard.id) {
+                idMapping[oldCard.id] = newCard.id
+              }
+            })
+          } catch (err) {
+            console.error('Error building credit card ID mapping:', err)
+          }
+        }
+
+        if (storedLoans) {
+          try {
+            const oldLoans = JSON.parse(storedLoans)
+            oldLoans.forEach((oldLoan: any) => {
+              const newLoan = mappedLoans.find((l: Loan) => 
+                l.principalAmount === oldLoan.principalAmount && l.name === oldLoan.name
+              )
+              if (newLoan && oldLoan.id !== newLoan.id) {
+                idMapping[oldLoan.id] = newLoan.id
+              }
+            })
+          } catch (err) {
+            console.error('Error building loan ID mapping:', err)
+          }
+        }
+
+        // Map transactions and update accountId references
+        const mappedTransactions = transactionsData.map((t: any) => {
+          const mappedT = mapId(t)
+          // Update accountId if we have a mapping
+          if (idMapping[mappedT.accountId]) {
+            mappedT.accountId = idMapping[mappedT.accountId]
+          }
+          // Update linkedAccountId if we have a mapping
+          if (mappedT.linkedAccountId && idMapping[mappedT.linkedAccountId]) {
+            mappedT.linkedAccountId = idMapping[mappedT.linkedAccountId]
+          }
+          return mappedT
+        })
+
+        console.log('✓ ID Migration completed:', {
+          totalMappings: Object.keys(idMapping).length,
+          mappings: idMapping
+        })
 
         // Set state
         setBankAccounts(mappedBankAccounts)
@@ -410,22 +502,38 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   // Credit Card methods
-  const addCreditCard = (card: Omit<CreditCard, 'id' | 'createdAt' | 'currentBalance' | 'availableCredit'>) => {
-    const newCard: CreditCard = {
-      ...card,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      currentBalance: 0,
-      availableCredit: card.limit,
+  const addCreditCard = async (card: Omit<CreditCard, 'id' | 'createdAt' | 'currentBalance' | 'availableCredit'>) => {
+    try {
+      // Create card in backend first to get proper ID
+      const createdCard = await accountApi.createCreditCard({
+        ...card,
+        createdAt: new Date().toISOString(),
+        currentBalance: 0,
+        availableCredit: card.limit
+      });
+
+      // Backend returns _id, map it to id for frontend
+      const newCard: CreditCard = {
+        ...createdCard,
+        id: createdCard._id || createdCard.id,
+        createdAt: createdCard.createdAt || new Date().toISOString(),
+        currentBalance: createdCard.currentBalance || 0,
+        availableCredit: createdCard.availableCredit || card.limit
+      };
+
+      setCreditCards([...creditCards, newCard]);
+
+      // Save to localStorage
+      if (username) {
+        const updated = [...creditCards, newCard];
+        localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updated));
+      }
+
+      console.log('✓ Credit card created:', newCard);
+    } catch (err) {
+      console.error('❌ Failed to create credit card:', err);
+      alert('Failed to create credit card. Please try again.');
     }
-    const updatedCards = [...creditCards, newCard]
-    setCreditCards(updatedCards)
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.createCreditCard(newCard).catch(err => console.error('Failed to sync credit card:', err))
   }
 
   const updateCreditCard = (card: CreditCard) => {
@@ -458,23 +566,40 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   // Loan methods
-  const addLoan = (loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths' | 'totalEmisPaid'>) => {
-    const newLoan: Loan = {
-      ...loan,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString(),
-      remainingAmount: loan.principalAmount,
-      remainingMonths: loan.tenureMonths,
-      totalEmisPaid: 0,
+  const addLoan = async (loan: Omit<Loan, 'id' | 'createdAt' | 'remainingAmount' | 'remainingMonths' | 'totalEmisPaid'>) => {
+    try {
+      // Create loan in backend first to get proper ID
+      const createdLoan = await accountApi.createLoan({
+        ...loan,
+        createdAt: new Date().toISOString(),
+        remainingAmount: loan.principalAmount,
+        remainingMonths: loan.tenureMonths,
+        totalEmisPaid: 0
+      });
+
+      // Backend returns _id, map it to id for frontend
+      const newLoan: Loan = {
+        ...createdLoan,
+        id: createdLoan._id || createdLoan.id,
+        createdAt: createdLoan.createdAt || new Date().toISOString(),
+        remainingAmount: createdLoan.remainingAmount || loan.principalAmount,
+        remainingMonths: createdLoan.remainingMonths || loan.tenureMonths,
+        totalEmisPaid: createdLoan.totalEmisPaid || 0
+      };
+
+      setLoans([...loans, newLoan]);
+
+      // Save to localStorage
+      if (username) {
+        const updated = [...loans, newLoan];
+        localStorage.setItem(getUserKey('loans', username), JSON.stringify(updated));
+      }
+
+      console.log('✓ Loan created:', newLoan);
+    } catch (err) {
+      console.error('❌ Failed to create loan:', err);
+      alert('Failed to create loan. Please try again.');
     }
-    const updatedLoans = [...loans, newLoan]
-    setLoans(updatedLoans)
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.createLoan(newLoan).catch(err => console.error('Failed to sync loan:', err))
   }
 
   const updateLoan = (loan: Loan) => {
@@ -501,116 +626,134 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   // Transaction methods
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-    }
-    const updatedTransactions = [...transactions, newTransaction]
-    setTransactions(updatedTransactions)
-    if (username) {
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
-    }
-    // Sync to backend and Google Sheets
-    accountApi.createTransaction(newTransaction).catch(err => console.error('Failed to sync transaction:', err))
+  const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+    try {
+      // Create transaction in backend first to get proper ID
+      const createdTransaction = await accountApi.createTransaction(transaction);
 
-    // Update account balances
-    if (transaction.accountType === 'bank') {
-      const account = bankAccounts.find((a) => a.id === transaction.accountId)
-      if (account) {
-        const newBalance =
-          transaction.type === 'income'
-            ? account.balance + transaction.amount
-            : account.balance - transaction.amount
-        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+      // Backend returns _id, map it to id for frontend
+      const newTransaction: Transaction = {
+        ...createdTransaction,
+        id: createdTransaction._id || createdTransaction.id
+      };
+
+      const updatedTransactions = [...transactions, newTransaction];
+      setTransactions(updatedTransactions);
+      
+      if (username) {
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions));
       }
-    } else if (transaction.accountType === 'creditCard') {
-      const card = creditCards.find((c) => c.id === transaction.accountId)
-      if (card) {
-        if (transaction.type === 'expense') {
-          const newBalance = card.currentBalance + transaction.amount
-          const newAvailableCredit = card.limit - newBalance
-          updateCreditCard({
-            ...card,
-            currentBalance: parseFloat(newBalance.toFixed(2)),
-            availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
-          })
-        } else if (transaction.type === 'payment') {
-          const newBalance = Math.max(0, card.currentBalance - transaction.amount)
-          const newAvailableCredit = card.limit - newBalance
-          updateCreditCard({
-            ...card,
-            currentBalance: parseFloat(newBalance.toFixed(2)),
-            availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
+
+      console.log('✓ Transaction created:', newTransaction);
+
+      // Update account balances
+      if (transaction.accountType === 'bank') {
+        const account = bankAccounts.find((a) => a.id === transaction.accountId)
+        if (account) {
+          const newBalance =
+            transaction.type === 'income'
+              ? account.balance + transaction.amount
+              : account.balance - transaction.amount
+          updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+        }
+      } else if (transaction.accountType === 'creditCard') {
+        const card = creditCards.find((c) => c.id === transaction.accountId)
+        if (card) {
+          if (transaction.type === 'expense') {
+            const newBalance = card.currentBalance + transaction.amount
+            const newAvailableCredit = card.limit - newBalance
+            updateCreditCard({
+              ...card,
+              currentBalance: parseFloat(newBalance.toFixed(2)),
+              availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
+            })
+          } else if (transaction.type === 'payment') {
+            const newBalance = Math.max(0, card.currentBalance - transaction.amount)
+            const newAvailableCredit = card.limit - newBalance
+            updateCreditCard({
+              ...card,
+              currentBalance: parseFloat(newBalance.toFixed(2)),
+              availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
+            })
+
+            // Reconciliation: Deduct from linked bank account AND create bank transaction
+            if (transaction.linkedAccountId) {
+              const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
+              if (linkedAccount) {
+                const newBankBalance = linkedAccount.balance - transaction.amount
+                updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+                
+                // Create a corresponding bank transaction for visibility
+                const bankTransactionData = {
+                  accountId: transaction.linkedAccountId,
+                  accountType: 'bank' as const,
+                  type: 'expense' as const,
+                  amount: transaction.amount,
+                  category: transaction.category || 'Credit Card Payment',
+                  date: transaction.date,
+                  description: `Payment to ${card.name}`,
+                  linkedAccountId: newTransaction.id,
+                }
+                
+                // Create the bank transaction in backend
+                const createdBankTransaction = await accountApi.createTransaction(bankTransactionData)
+                const bankTransaction: Transaction = {
+                  ...createdBankTransaction,
+                  id: createdBankTransaction._id || createdBankTransaction.id
+                }
+                
+                setTransactions([...updatedTransactions, bankTransaction])
+                if (username) {
+                  localStorage.setItem(getUserKey('transactions', username), JSON.stringify([...updatedTransactions, bankTransaction]))
+                }
+              }
+            }
+          }
+        }
+      } else if (transaction.accountType === 'loan') {
+        const loan = loans.find((l) => l.id === transaction.accountId)
+        if (loan && transaction.type === 'payment') {
+          const newRemaining = Math.max(0, loan.remainingAmount - transaction.amount)
+          const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
+          updateLoan({
+            ...loan,
+            remainingAmount: parseFloat(newRemaining.toFixed(2)),
+            remainingMonths: newRemainingMonths,
           })
 
-          // Reconciliation: Deduct from linked bank account AND create bank transaction
+          // Reconciliation: Deduct from linked bank account
           if (transaction.linkedAccountId) {
             const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
             if (linkedAccount) {
               const newBankBalance = linkedAccount.balance - transaction.amount
               updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
-              
-              // Create a corresponding bank transaction for visibility
-              const bankTransaction: Transaction = {
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                accountId: transaction.linkedAccountId,
-                accountType: 'bank',
-                type: 'expense',
-                amount: transaction.amount,
-                category: transaction.category || 'Credit Card Payment',
-                date: transaction.date,
-                description: `Payment to ${card.name}`,
-                linkedAccountId: transaction.accountId,
-              }
-              setTransactions([...updatedTransactions, bankTransaction])
-              if (username) {
-                localStorage.setItem(getUserKey('transactions', username), JSON.stringify([...updatedTransactions, bankTransaction]))
-              }
             }
           }
         }
       }
-    } else if (transaction.accountType === 'loan') {
-      const loan = loans.find((l) => l.id === transaction.accountId)
-      if (loan && transaction.type === 'payment') {
-        const newRemaining = Math.max(0, loan.remainingAmount - transaction.amount)
-        const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
-        updateLoan({
-          ...loan,
-          remainingAmount: parseFloat(newRemaining.toFixed(2)),
-          remainingMonths: newRemainingMonths,
-        })
 
-        // Reconciliation: Deduct from linked bank account
-        if (transaction.linkedAccountId) {
-          const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
-          if (linkedAccount) {
-            const newBankBalance = linkedAccount.balance - transaction.amount
-            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
-          }
+      // Create reconciliation record for credit card payments and loan payments
+      if (transaction.linkedAccountId &&
+        ((transaction.accountType === 'creditCard' && transaction.type === 'payment') ||
+          (transaction.accountType === 'loan' && transaction.type === 'payment'))) {
+        const reconciliation: Omit<AccountReconciliation, 'id'> = {
+          fromAccountId: transaction.linkedAccountId,
+          fromAccountType: 'bank',
+          toAccountId: newTransaction.id,
+          toAccountType: transaction.accountType,
+          amount: transaction.amount,
+          date: transaction.date,
+          description: `Payment from bank account to ${transaction.accountType === 'creditCard' ? 'credit card' : 'loan'}`,
+        }
+        const updatedReconciliations = [...reconciliations, { ...reconciliation, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) }]
+        setReconciliations(updatedReconciliations)
+        if (username) {
+          localStorage.setItem(getUserKey('reconciliations', username), JSON.stringify(updatedReconciliations))
         }
       }
-    }
-
-    // Create reconciliation record for credit card payments and loan payments
-    if (transaction.linkedAccountId &&
-      ((transaction.accountType === 'creditCard' && transaction.type === 'payment') ||
-        (transaction.accountType === 'loan' && transaction.type === 'payment'))) {
-      const reconciliation: Omit<AccountReconciliation, 'id'> = {
-        fromAccountId: transaction.linkedAccountId,
-        fromAccountType: 'bank',
-        toAccountId: transaction.accountId,
-        toAccountType: transaction.accountType,
-        amount: transaction.amount,
-        date: transaction.date,
-        description: `Payment from bank account to ${transaction.accountType === 'creditCard' ? 'credit card' : 'loan'}`,
-      }
-      const updatedReconciliations = [...reconciliations, { ...reconciliation, id: Date.now().toString() + Math.random().toString(36).substr(2, 9) }]
-      setReconciliations(updatedReconciliations)
-      if (username) {
-        localStorage.setItem(getUserKey('reconciliations', username), JSON.stringify(updatedReconciliations))
-      }
+    } catch (err) {
+      console.error('❌ Failed to create transaction:', err);
+      alert('Failed to create transaction. Please try again.');
     }
   }
 
@@ -951,6 +1094,23 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
+  // Visibility toggle functions
+  const toggleCreditCardVisibility = () => {
+    const newValue = !showCreditCardBalance
+    setShowCreditCardBalance(newValue)
+    if (username) {
+      localStorage.setItem(getUserKey('showCreditCardBalance', username), JSON.stringify(newValue))
+    }
+  }
+
+  const toggleLoanVisibility = () => {
+    const newValue = !showLoanBalance
+    setShowLoanBalance(newValue)
+    if (username) {
+      localStorage.setItem(getUserKey('showLoanBalance', username), JSON.stringify(newValue))
+    }
+  }
+
   return (
     <AccountContext.Provider
       value={{
@@ -961,6 +1121,10 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         budgets,
         savings,
         reconciliations,
+        showCreditCardBalance,
+        showLoanBalance,
+        toggleCreditCardVisibility,
+        toggleLoanVisibility,
         addBankAccount,
         updateBankAccount,
         deleteBankAccount,

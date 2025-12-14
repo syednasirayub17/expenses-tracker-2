@@ -4,6 +4,11 @@
 
 .overview-header {
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .overview-header h2 {
@@ -11,6 +16,47 @@
   font-weight: 700;
   color: #333;
   margin: 0;
+}
+
+.visibility-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.visibility-toggle {
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.visibility-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.visibility-toggle.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.visibility-toggle.inactive {
+  background: #f5f5f5;
+  color: #999;
+  border-color: #e0e0e0;
+  opacity: 0.7;
+}
+
+.visibility-toggle.inactive:hover {
+  opacity: 1;
+  background: #eeeeee;
 }
 
 .overview-cards {

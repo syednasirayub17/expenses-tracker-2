@@ -5,7 +5,18 @@ import SpendingInsights from './SpendingInsights'
 import './DashboardOverview.css'
 
 const DashboardOverview = () => {
-  const { bankAccounts, creditCards, loans, transactions, budgets, savings } = useAccount()
+  const { 
+    bankAccounts, 
+    creditCards, 
+    loans, 
+    transactions, 
+    budgets, 
+    savings,
+    showCreditCardBalance,
+    showLoanBalance,
+    toggleCreditCardVisibility,
+    toggleLoanVisibility
+  } = useAccount()
 
   // Calculate total cash in hand
   const cashInHand = bankAccounts
@@ -87,6 +98,22 @@ const DashboardOverview = () => {
     <div className="dashboard-overview">
       <div className="overview-header">
         <h2>Dashboard Overview</h2>
+        <div className="visibility-controls">
+          <button 
+            onClick={toggleCreditCardVisibility}
+            className={`visibility-toggle ${showCreditCardBalance ? 'active' : 'inactive'}`}
+            title={showCreditCardBalance ? 'Hide Credit Card Balance' : 'Show Credit Card Balance'}
+          >
+            💳 {showCreditCardBalance ? '👁️' : '👁️‍🗨️'}
+          </button>
+          <button 
+            onClick={toggleLoanVisibility}
+            className={`visibility-toggle ${showLoanBalance ? 'active' : 'inactive'}`}
+            title={showLoanBalance ? 'Hide Loan Balance' : 'Show Loan Balance'}
+          >
+            📋 {showLoanBalance ? '👁️' : '👁️‍🗨️'}
+          </button>
+        </div>
       </div>
 
       <SpendingInsights />
@@ -118,21 +145,25 @@ const DashboardOverview = () => {
           </div>
         </div>
 
-        <div className="overview-card">
-          <div className="card-icon">💳</div>
-          <div className="card-content">
-            <p className="card-label">Credit Card Debt</p>
-            <p className="card-value negative">{formatCurrency(totalCreditCardDebt)}</p>
+        {showCreditCardBalance && (
+          <div className="overview-card">
+            <div className="card-icon">💳</div>
+            <div className="card-content">
+              <p className="card-label">Credit Card Debt</p>
+              <p className="card-value negative">{formatCurrency(totalCreditCardDebt)}</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="overview-card">
-          <div className="card-icon">📋</div>
-          <div className="card-content">
-            <p className="card-label">Loan Remaining</p>
-            <p className="card-value negative">{formatCurrency(totalLoanRemaining)}</p>
+        {showLoanBalance && (
+          <div className="overview-card">
+            <div className="card-icon">📋</div>
+            <div className="card-content">
+              <p className="card-label">Loan Remaining</p>
+              <p className="card-value negative">{formatCurrency(totalLoanRemaining)}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="overview-card">
           <div className="card-icon">📊</div>

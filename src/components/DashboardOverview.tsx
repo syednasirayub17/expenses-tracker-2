@@ -1,7 +1,6 @@
 import { useAccount } from '../context/AccountContext'
 import { formatCurrency } from '../utils/currency'
 import PieChart from './PieChart'
-import SpendingInsights from './SpendingInsights'
 import './DashboardOverview.css'
 
 const DashboardOverview = () => {
@@ -28,13 +27,17 @@ const DashboardOverview = () => {
     .filter((acc) => acc.accountType !== 'cash')
     .reduce((sum, acc) => sum + acc.balance, 0)
 
-  // Calculate total credit card debt
-  const totalCreditCardDebt = creditCards.reduce((sum, card) => sum + card.currentBalance, 0)
+  // Calculate total credit card debt (only if visible)
+  const totalCreditCardDebt = showCreditCardBalance 
+    ? creditCards.reduce((sum, card) => sum + card.currentBalance, 0)
+    : 0
 
-  // Calculate total loan remaining
-  const totalLoanRemaining = loans.reduce((sum, loan) => sum + loan.remainingAmount, 0)
+  // Calculate total loan remaining (only if visible)
+  const totalLoanRemaining = showLoanBalance
+    ? loans.reduce((sum, loan) => sum + loan.remainingAmount, 0)
+    : 0
 
-  // Calculate net worth
+  // Calculate net worth (only includes visible balances)
   const netWorth = totalBankBalance + cashInHand - totalCreditCardDebt - totalLoanRemaining
 
   // Get current month transactions
@@ -116,7 +119,7 @@ const DashboardOverview = () => {
         </div>
       </div>
 
-      <SpendingInsights />
+
 
       <div className="overview-cards">
         <div className="overview-card primary">

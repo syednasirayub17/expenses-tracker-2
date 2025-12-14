@@ -706,11 +706,20 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (transaction.accountType === 'bank') {
         const account = bankAccounts.find((a) => a.id === transaction.accountId)
         if (account) {
-          const newBalance =
-            transaction.type === 'income'
-              ? account.balance + transaction.amount
-              : account.balance - transaction.amount
-          updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+          // CRITICAL FIX: Skip balance update if this is part of a dual transaction
+          // Self-transfers and linked payments are handled separately below
+          const isDualTransaction = transaction.linkedAccountId && 
+            (transaction.category === 'Bank Transfer' || 
+             transaction.category === 'Credit Card Payment' ||
+             transaction.category === 'Loan EMI')
+          
+          if (!isDualTransaction) {
+            const newBalance =
+              transaction.type === 'income'
+                ? account.balance + transaction.amount
+                : account.balance - transaction.amount
+            updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+          }
         }
       } else if (transaction.accountType === 'creditCard') {
         const card = creditCards.find((c) => c.id === transaction.accountId)
@@ -732,36 +741,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
               availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
             })
 
-            // Reconciliation: Deduct from linked bank account AND create bank transaction
+            // Reconciliation: Deduct from linked bank account (if manually entered payment)
+            // NOTE: Dual transactions from BankAccountManager already handle both sides
             if (transaction.linkedAccountId) {
               const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
               if (linkedAccount) {
                 const newBankBalance = linkedAccount.balance - transaction.amount
                 updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
-                
-                // Create a corresponding bank transaction for visibility
-                const bankTransactionData = {
-                  accountId: transaction.linkedAccountId,
-                  accountType: 'bank' as const,
-                  type: 'expense' as const,
-                  amount: transaction.amount,
-                  category: transaction.category || 'Credit Card Payment',
-                  date: transaction.date,
-                  description: `Payment to ${card.name}`,
-                  linkedAccountId: newTransaction.id,
-                }
-                
-                // Create the bank transaction in backend
-                const createdBankTransaction = await accountApi.createTransaction(bankTransactionData)
-                const bankTransaction: Transaction = {
-                  ...createdBankTransaction,
-                  id: createdBankTransaction._id || createdBankTransaction.id
-                }
-                
-                setTransactions([...updatedTransactions, bankTransaction])
-                if (username) {
-                  localStorage.setItem(getUserKey('transactions', username), JSON.stringify([...updatedTransactions, bankTransaction]))
-                }
               }
             }
           }

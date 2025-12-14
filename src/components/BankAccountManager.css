@@ -185,6 +185,8 @@
 
 .account-balance {
   text-align: right;
+  overflow: visible;
+  min-width: 0;
 }
 
 .balance-label {
@@ -192,12 +194,17 @@
   font-size: 12px;
   color: #999;
   margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .balance-amount {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 700;
   color: #333;
+  white-space: nowrap;
+  overflow: visible;
+  line-height: 1.1;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .account-actions {
@@ -430,5 +437,9 @@
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .balance-amount {
+    font-size: 24px;
   }
 }

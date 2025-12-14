@@ -174,9 +174,46 @@ const DashboardOverview = () => {
 
       <div className="overview-charts">
         <div className="chart-section expenses-3d">
-          <h3>📊 Monthly Expenses by Category</h3>
+          <div className="chart-header">
+            <h3>📊 Monthly Expenses by Category</h3>
+            <div className="chart-stats">
+              <span className="total-amount">Total: {formatCurrency(monthlyExpensesTotal)}</span>
+              <span className="category-count">{expenseCategories.length} Categories</span>
+            </div>
+          </div>
+          
           {expenseCategories.length > 0 ? (
-            <PieChart data={expenseCategories} />
+            <div className="advanced-expense-view">
+              <div className="pie-chart-wrapper">
+                <PieChart data={expenseCategories} />
+              </div>
+              
+              <div className="category-breakdown">
+                {expenseCategories.map((item, index) => {
+                  const percentage = ((item.amount / monthlyExpensesTotal) * 100).toFixed(1)
+                  return (
+                    <div key={item.category} className="category-breakdown-item">
+                      <div className="category-info">
+                        <div className="category-rank">#{index + 1}</div>
+                        <div className="category-details">
+                          <span className="category-name">{item.category}</span>
+                          <div className="category-metrics">
+                            <span className="category-amount">{formatCurrency(item.amount)}</span>
+                            <span className="category-percentage">{percentage}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="category-progress-bar">
+                        <div 
+                          className="category-progress-fill" 
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           ) : (
             <p className="no-data">No expenses this month</p>
           )}

@@ -42,27 +42,42 @@
 .loan-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
   margin-top: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 360px;
 }
 
 .stat-item {
   text-align: center;
+  padding: 16px 8px;
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 120px;
 }
 
 .stat-label {
   display: block;
-  font-size: 13px;
+  font-size: 11px;
   color: #999;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
+  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .stat-value {
   display: block;
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 700;
   color: #333;
+  white-space: nowrap;
+  overflow: visible;
+  line-height: 1.1;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 120px;
 }
 
 .stat-value.remaining {
@@ -126,6 +141,26 @@
 @media (max-width: 768px) {
   .loans-grid {
     grid-template-columns: 1fr;
+  }
+
+  .loan-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .stat-item {
+    padding: 12px 4px;
+    min-width: 0;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    min-width: 0;
+  }
+
+  .stat-label {
+    font-size: 10px;
   }
 }
 

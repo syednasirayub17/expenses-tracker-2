@@ -6,9 +6,10 @@ import CategoryManager from './CategoryManager'
 import './BankAccountManager.css'
 
 const BankAccountManager = () => {
-  const { bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount, addTransaction, updateTransaction, deleteTransaction, transactions, categories } = useAccount()
+  const { bankAccounts, creditCards, addBankAccount, updateBankAccount, deleteBankAccount, addTransaction, updateTransaction, deleteTransaction, transactions, categories } = useAccount()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false)
+  const [isCreditCardPaymentFormOpen, setIsCreditCardPaymentFormOpen] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null)
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
@@ -82,6 +83,48 @@ const BankAccountManager = () => {
     })
   }
 
+  const handleCreditCardPayment = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!selectedAccount) return
+
+    const formData = new FormData(e.currentTarget)
+    const creditCardId = formData.get('creditCardId') as string
+    const amount = parseFloat(parseFloat(formData.get('amount') as string).toFixed(2))
+    const date = formData.get('date') as string
+    const description = formData.get('description') as string || 'Credit Card Payment'
+
+    // Create dual transactions (bank account expense + credit card payment)
+    // Transaction 1: Deduct from bank account
+    const bankTransaction: Omit<Transaction, 'id'> = {
+      accountId: selectedAccount.id,
+      accountType: 'bank',
+      type: 'payment',
+      amount: amount,
+      category: 'Credit Card Payment',
+      date: date,
+      description: description,
+      linkedAccountId: creditCardId,
+    }
+    addTransaction(bankTransaction)
+
+    // Transaction 2: Credit to credit card (reduces debt)
+    const creditCardTransaction: Omit<Transaction, 'id'> = {
+      accountId: creditCardId,
+      accountType: 'creditCard',
+      type: 'payment',
+      amount: amount,
+      category: 'Payment Received',
+      date: date,
+      description: description,
+      linkedAccountId: selectedAccount.id,
+    }
+    addTransaction(creditCardTransaction)
+
+    setIsCreditCardPaymentFormOpen(false)
+    setSelectedAccount(null)
+    e.currentTarget.reset()
+  }
+
   return (
     <div className="bank-account-manager">
       <div className="section-header">
@@ -150,6 +193,9 @@ const BankAccountManager = () => {
               <div className="account-actions">
                 <button onClick={() => { setSelectedAccount(account); setIsTransactionFormOpen(true) }} className="action-button">
                   Add Transaction
+                </button>
+                <button onClick={() => { setSelectedAccount(account); setIsCreditCardPaymentFormOpen(true) }} className="action-button primary">
+                  Pay Credit Card
                 </button>
                 <button onClick={() => { setEditingAccount(account); setIsFormOpen(true) }} className="action-button secondary">
                   Edit
@@ -309,6 +355,48 @@ const BankAccountManager = () => {
               <div className="form-actions">
                 <button type="button" onClick={() => { setIsTransactionFormOpen(false); setSelectedAccount(null); setEditingTransaction(null) }}>Cancel</button>
                 <button type="submit">{editingTransaction ? 'Update' : 'Add'} Transaction</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isCreditCardPaymentFormOpen && selectedAccount && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Pay Credit Card - {selectedAccount.name}</h3>
+            <form onSubmit={handleCreditCardPayment}>
+              <div className="form-group">
+                <label>Select Credit Card *</label>
+                <select name="creditCardId" required>
+                  <option value="">-- Select Credit Card --</option>
+                  {creditCards.map((card) => (
+                    <option key={card.id} value={card.id}>
+                      {card.name} ({card.cardNumber.slice(-4)}) - Outstanding: {formatCurrency(card.currentBalance)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Payment Amount *</label>
+                <input type="number" name="amount" step="0.01" min="0.01" required />
+              </div>
+              <div className="form-group">
+                <label>Payment Date *</label>
+                <input 
+                  type="date" 
+                  name="date" 
+                  defaultValue={new Date().toISOString().split('T')[0]} 
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea name="description" rows={2} placeholder="e.g., Monthly payment, Partial payment" />
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={() => { setIsCreditCardPaymentFormOpen(false); setSelectedAccount(null) }}>Cancel</button>
+                <button type="submit">Process Payment</button>
               </div>
             </form>
           </div>

@@ -445,15 +445,25 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  const updateBankAccount = (account: BankAccount) => {
-    const updatedAccounts = bankAccounts.map((a) => (a.id === account.id ? account : a))
-    setBankAccounts(updatedAccounts)
-    // Save to backend API
-    accountApi.updateBankAccount(account.id, account).catch(err => {
-      console.error('Failed to update bank account:', err)
-      // Rollback on error
-      setBankAccounts(bankAccounts)
-    })
+  const updateBankAccount = async (account: BankAccount) => {
+    try {
+      // Update in backend first
+      await accountApi.updateBankAccount(account.id, account)
+      
+      // Then update local state
+      const updatedAccounts = bankAccounts.map((a) => (a.id === account.id ? account : a))
+      setBankAccounts(updatedAccounts)
+      
+      // Save to localStorage for offline support
+      if (username) {
+        localStorage.setItem(getUserKey('bankAccounts', username), JSON.stringify(updatedAccounts))
+      }
+      
+      console.log('✓ Bank account updated:', account.id)
+    } catch (err) {
+      console.error('❌ Failed to update bank account:', err)
+      alert('Failed to update account. Please try again.')
+    }
   }
 
   const deleteBankAccount = async (id: string) => {
@@ -536,33 +546,56 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  const updateCreditCard = (card: CreditCard) => {
-    // When updating a card, recalculate available credit based on current balance
-    const updatedCard = {
-      ...card,
-      availableCredit: card.limit - card.currentBalance
-    }
+  const updateCreditCard = async (card: CreditCard) => {
+    try {
+      // When updating a card, recalculate available credit based on current balance
+      const updatedCard = {
+        ...card,
+        availableCredit: card.limit - card.currentBalance
+      }
 
-    const updatedCards = creditCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
-    setCreditCards(updatedCards)
-    if (username) {
-      localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
+      // Update in backend first
+      await accountApi.updateCreditCard(updatedCard.id, updatedCard)
+      
+      // Then update local state
+      const updatedCards = creditCards.map((c) => (c.id === updatedCard.id ? updatedCard : c))
+      setCreditCards(updatedCards)
+      
+      // Save to localStorage for offline support
+      if (username) {
+        localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
+      }
+      
+      console.log('✓ Credit card updated:', updatedCard.id)
+    } catch (err) {
+      console.error('❌ Failed to update credit card:', err)
+      alert('Failed to update credit card. Please try again.')
     }
-    // Sync to backend and Google Sheets
-    accountApi.updateCreditCard(updatedCard.id, updatedCard).catch(err => console.error('Failed to sync credit card:', err))
   }
 
-  const deleteCreditCard = (id: string) => {
-    const updatedCards = creditCards.filter((c) => c.id !== id)
-    const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'creditCard'))
-    setCreditCards(updatedCards)
-    setTransactions(updatedTransactions)
-    if (username) {
-      localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+  const deleteCreditCard = async (id: string) => {
+    try {
+      // Delete from backend first
+      await accountApi.deleteCreditCard(id)
+      
+      // Then update local state
+      const updatedCards = creditCards.filter((c) => c.id !== id)
+      const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'creditCard'))
+      
+      setCreditCards(updatedCards)
+      setTransactions(updatedTransactions)
+      
+      // Update localStorage
+      if (username) {
+        localStorage.setItem(getUserKey('creditCards', username), JSON.stringify(updatedCards))
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+      }
+      
+      console.log('✓ Credit card deleted:', id)
+    } catch (err) {
+      console.error('❌ Failed to delete credit card:', err)
+      alert('Failed to delete credit card. Please try again.')
     }
-    // Sync to backend and Google Sheets
-    accountApi.deleteCreditCard(id).catch(err => console.error('Failed to sync credit card deletion:', err))
   }
 
   // Loan methods
@@ -602,27 +635,50 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  const updateLoan = (loan: Loan) => {
-    const updatedLoans = loans.map((l) => (l.id === loan.id ? loan : l))
-    setLoans(updatedLoans)
-    if (username) {
-      localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
+  const updateLoan = async (loan: Loan) => {
+    try {
+      // Update in backend first
+      await accountApi.updateLoan(loan.id, loan)
+      
+      // Then update local state
+      const updatedLoans = loans.map((l) => (l.id === loan.id ? loan : l))
+      setLoans(updatedLoans)
+      
+      // Save to localStorage for offline support
+      if (username) {
+        localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
+      }
+      
+      console.log('✓ Loan updated:', loan.id)
+    } catch (err) {
+      console.error('❌ Failed to update loan:', err)
+      alert('Failed to update loan. Please try again.')
     }
-    // Sync to backend and Google Sheets
-    accountApi.updateLoan(loan.id, loan).catch(err => console.error('Failed to sync loan:', err))
   }
 
-  const deleteLoan = (id: string) => {
-    const updatedLoans = loans.filter((l) => l.id !== id)
-    const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'loan'))
-    setLoans(updatedLoans)
-    setTransactions(updatedTransactions)
-    if (username) {
-      localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+  const deleteLoan = async (id: string) => {
+    try {
+      // Delete from backend first
+      await accountApi.deleteLoan(id)
+      
+      // Then update local state
+      const updatedLoans = loans.filter((l) => l.id !== id)
+      const updatedTransactions = transactions.filter((t) => !(t.accountId === id && t.accountType === 'loan'))
+      
+      setLoans(updatedLoans)
+      setTransactions(updatedTransactions)
+      
+      // Update localStorage
+      if (username) {
+        localStorage.setItem(getUserKey('loans', username), JSON.stringify(updatedLoans))
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+      }
+      
+      console.log('✓ Loan deleted:', id)
+    } catch (err) {
+      console.error('❌ Failed to delete loan:', err)
+      alert('Failed to delete loan. Please try again.')
     }
-    // Sync to backend and Google Sheets
-    accountApi.deleteLoan(id).catch(err => console.error('Failed to sync loan deletion:', err))
   }
 
   // Transaction methods
@@ -757,209 +813,219 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  const updateTransaction = (transaction: Transaction) => {
-    const oldTransaction = transactions.find((t) => t.id === transaction.id)
-    const updatedTransactions = transactions.map((t) => (t.id === transaction.id ? transaction : t))
-    setTransactions(updatedTransactions)
+  const updateTransaction = async (transaction: Transaction) => {
+    try {
+      // Update in backend first
+      await accountApi.updateTransaction(transaction.id, transaction)
+      
+      const oldTransaction = transactions.find((t) => t.id === transaction.id)
+      const updatedTransactions = transactions.map((t) => (t.id === transaction.id ? transaction : t))
+      setTransactions(updatedTransactions)
 
-    // Handle bank account balance adjustments when transaction is updated
-    if (transaction.accountType === 'bank') {
-      const account = bankAccounts.find((a) => a.id === transaction.accountId)
-      if (account) {
-        let newBalance = account.balance
+      // Handle bank account balance adjustments when transaction is updated
+      if (transaction.accountType === 'bank') {
+        const account = bankAccounts.find((a) => a.id === transaction.accountId)
+        if (account) {
+          let newBalance = account.balance
 
-        // If there was an old transaction, reverse its effect first
-        if (oldTransaction) {
-          if (oldTransaction.type === 'income') {
-            newBalance = account.balance - oldTransaction.amount
-          } else {
-            newBalance = account.balance + oldTransaction.amount
-          }
-        }
-
-        // Then apply the new transaction effect
-        if (transaction.type === 'income') {
-          newBalance = newBalance + transaction.amount
-        } else {
-          newBalance = newBalance - transaction.amount
-        }
-
-        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
-      }
-    }
-
-    // Handle credit card balance adjustments when transaction is updated
-    else if (transaction.accountType === 'creditCard') {
-      const card = creditCards.find((c) => c.id === transaction.accountId)
-      if (card) {
-        let newBalance = card.currentBalance
-
-        // If there was an old transaction, reverse its effect first
-        if (oldTransaction) {
-          if (oldTransaction.type === 'expense') {
-            newBalance = Math.max(0, card.currentBalance - oldTransaction.amount)
-          } else if (oldTransaction.type === 'payment') {
-            newBalance = card.currentBalance + oldTransaction.amount
-          }
-        }
-
-        // Then apply the new transaction effect
-        if (transaction.type === 'expense') {
-          newBalance = newBalance + transaction.amount
-        } else if (transaction.type === 'payment') {
-          newBalance = Math.max(0, newBalance - transaction.amount)
-        }
-
-        const newAvailableCredit = card.limit - newBalance
-        updateCreditCard({
-          ...card,
-          currentBalance: newBalance,
-          availableCredit: newAvailableCredit,
-        })
-      }
-    }
-
-    // Handle loan balance adjustments when transaction is updated
-    else if (transaction.accountType === 'loan' && transaction.type === 'payment') {
-      const loan = loans.find((l) => l.id === transaction.accountId)
-      if (loan) {
-        let newRemaining = loan.remainingAmount
-
-        // If there was an old transaction, reverse its effect first
-        if (oldTransaction && oldTransaction.type === 'payment') {
-          newRemaining = loan.remainingAmount + oldTransaction.amount
-        }
-
-        // Then apply the new transaction effect
-        newRemaining = Math.max(0, newRemaining - transaction.amount)
-        const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
-
-        updateLoan({
-          ...loan,
-          remainingAmount: parseFloat(newRemaining.toFixed(2)),
-          remainingMonths: newRemainingMonths,
-        })
-
-        // Reconciliation: Adjust linked bank account
-        if (transaction.linkedAccountId) {
-          const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
-          if (linkedAccount) {
-            let newBankBalance = linkedAccount.balance
-
-            // Reverse old transaction effect
-            if (oldTransaction && oldTransaction.linkedAccountId === transaction.linkedAccountId) {
-              newBankBalance = linkedAccount.balance + oldTransaction.amount
+          // If there was an old transaction, reverse its effect first
+          if (oldTransaction) {
+            if (oldTransaction.type === 'income') {
+              newBalance = account.balance - oldTransaction.amount
+            } else {
+              newBalance = account.balance + oldTransaction.amount
             }
+          }
 
-            // Apply new transaction effect
-            newBankBalance = newBankBalance - transaction.amount
-            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+          // Then apply the new transaction effect
+          if (transaction.type === 'income') {
+            newBalance = newBalance + transaction.amount
+          } else {
+            newBalance = newBalance - transaction.amount
+          }
+
+          await updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+        }
+      }
+
+      // Handle credit card balance adjustments when transaction is updated
+      else if (transaction.accountType === 'creditCard') {
+        const card = creditCards.find((c) => c.id === transaction.accountId)
+        if (card) {
+          let newBalance = card.currentBalance
+
+          // If there was an old transaction, reverse its effect first
+          if (oldTransaction) {
+            if (oldTransaction.type === 'expense') {
+              newBalance = Math.max(0, card.currentBalance - oldTransaction.amount)
+            } else if (oldTransaction.type === 'payment') {
+              newBalance = card.currentBalance + oldTransaction.amount
+            }
+          }
+
+          // Then apply the new transaction effect
+          if (transaction.type === 'expense') {
+            newBalance = newBalance + transaction.amount
+          } else if (transaction.type === 'payment') {
+            newBalance = Math.max(0, newBalance - transaction.amount)
+          }
+
+          const newAvailableCredit = card.limit - newBalance
+          await updateCreditCard({
+            ...card,
+            currentBalance: newBalance,
+            availableCredit: newAvailableCredit,
+          })
+        }
+      }
+
+      // Handle loan balance adjustments when transaction is updated
+      else if (transaction.accountType === 'loan' && transaction.type === 'payment') {
+        const loan = loans.find((l) => l.id === transaction.accountId)
+        if (loan) {
+          let newRemaining = loan.remainingAmount
+
+          // If there was an old transaction, reverse its effect first
+          if (oldTransaction && oldTransaction.type === 'payment') {
+            newRemaining = loan.remainingAmount + oldTransaction.amount
+          }
+
+          // Then apply the new transaction effect
+          newRemaining = Math.max(0, newRemaining - transaction.amount)
+          const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
+
+          await updateLoan({
+            ...loan,
+            remainingAmount: parseFloat(newRemaining.toFixed(2)),
+            remainingMonths: newRemainingMonths,
+          })
+
+          // Reconciliation: Adjust linked bank account
+          if (transaction.linkedAccountId) {
+            const linkedAccount = bankAccounts.find((a) => a.id === transaction.linkedAccountId)
+            if (linkedAccount) {
+              let newBankBalance = linkedAccount.balance
+
+              // Reverse old transaction effect
+              if (oldTransaction && oldTransaction.linkedAccountId === transaction.linkedAccountId) {
+                newBankBalance = linkedAccount.balance + oldTransaction.amount
+              }
+
+              // Apply new transaction effect
+              newBankBalance = newBankBalance - transaction.amount
+              await updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+            }
           }
         }
       }
-    }
 
-    // Immediately save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+      // Save to localStorage for offline support
+      if (username) {
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+      }
+      
+      console.log('✓ Transaction updated:', transaction.id)
+    } catch (err) {
+      console.error('❌ Failed to update transaction:', err)
+      alert('Failed to update transaction. Please try again.')
     }
   }
 
   const deleteTransaction = async (id: string) => {
-    const transactionToDelete = transactions.find((t) => t.id === id)
-    const updatedTransactions = transactions.filter((t) => t.id !== id)
-    setTransactions(updatedTransactions)
-
-    // If this was a bank account transaction, recalculate the account balance
-    if (transactionToDelete && transactionToDelete.accountType === 'bank') {
-      const account = bankAccounts.find((a) => a.id === transactionToDelete.accountId)
-      if (account) {
-        let newBalance = account.balance
-
-        // Reverse the transaction effect
-        if (transactionToDelete.type === 'income') {
-          newBalance = account.balance - transactionToDelete.amount
-        } else {
-          newBalance = account.balance + transactionToDelete.amount
-        }
-
-        updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
-      }
-    }
-
-    // If this was a credit card transaction, recalculate the card balance
-    else if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
-      const card = creditCards.find((c) => c.id === transactionToDelete.accountId)
-      if (card) {
-        let newBalance = card.currentBalance
-
-        // Reverse the transaction effect
-        if (transactionToDelete.type === 'expense') {
-          newBalance = Math.max(0, card.currentBalance - transactionToDelete.amount)
-        } else if (transactionToDelete.type === 'payment') {
-          newBalance = card.currentBalance + transactionToDelete.amount
-        }
-
-        const newAvailableCredit = card.limit - newBalance
-        updateCreditCard({
-          ...card,
-          currentBalance: parseFloat(newBalance.toFixed(2)),
-          availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
-        })
-
-        // CRITICAL FIX: Restore linked bank account balance for credit card payments
-        if (transactionToDelete.type === 'payment' && transactionToDelete.linkedAccountId) {
-          const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
-          if (linkedAccount) {
-            const newBankBalance = linkedAccount.balance + transactionToDelete.amount
-            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
-          }
-        }
-      }
-    }
-
-    // If this was a loan payment transaction, recalculate the loan balance
-    else if (transactionToDelete && transactionToDelete.accountType === 'loan' && transactionToDelete.type === 'payment') {
-      const loan = loans.find((l) => l.id === transactionToDelete.accountId)
-      if (loan) {
-        let newRemaining = loan.remainingAmount
-
-        // Reverse the transaction effect
-        newRemaining = loan.remainingAmount + transactionToDelete.amount
-        const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
-
-        updateLoan({
-          ...loan,
-          remainingAmount: parseFloat(newRemaining.toFixed(2)),
-          remainingMonths: newRemainingMonths,
-        })
-
-        // Reconciliation: Refund to linked bank account
-        if (transactionToDelete.linkedAccountId) {
-          const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
-          if (linkedAccount) {
-            const newBankBalance = linkedAccount.balance + transactionToDelete.amount
-            updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
-          }
-        }
-      }
-    }
-
-    // Save to localStorage
-    if (username) {
-      localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
-    }
-
-    // Delete from database via API
     try {
+      const transactionToDelete = transactions.find((t) => t.id === id)
+      
+      // Delete from backend first
       await accountApi.deleteTransaction(id)
-    } catch (error) {
-      console.error('Error deleting transaction from database:', error)
-      // Revert the local deletion if API call fails
-      setTransactions(transactions)
-      if (username) {
-        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(transactions))
+      
+      // Then update local state
+      const updatedTransactions = transactions.filter((t) => t.id !== id)
+      setTransactions(updatedTransactions)
+
+      // If this was a bank account transaction, recalculate the account balance
+      if (transactionToDelete && transactionToDelete.accountType === 'bank') {
+        const account = bankAccounts.find((a) => a.id === transactionToDelete.accountId)
+        if (account) {
+          let newBalance = account.balance
+
+          // Reverse the transaction effect
+          if (transactionToDelete.type === 'income') {
+            newBalance = account.balance - transactionToDelete.amount
+          } else {
+            newBalance = account.balance + transactionToDelete.amount
+          }
+
+          await updateBankAccount({ ...account, balance: parseFloat(newBalance.toFixed(2)) })
+        }
       }
+
+      // If this was a credit card transaction, recalculate the card balance
+      else if (transactionToDelete && transactionToDelete.accountType === 'creditCard') {
+        const card = creditCards.find((c) => c.id === transactionToDelete.accountId)
+        if (card) {
+          let newBalance = card.currentBalance
+
+          // Reverse the transaction effect
+          if (transactionToDelete.type === 'expense') {
+            newBalance = Math.max(0, card.currentBalance - transactionToDelete.amount)
+          } else if (transactionToDelete.type === 'payment') {
+            newBalance = card.currentBalance + transactionToDelete.amount
+          }
+
+          const newAvailableCredit = card.limit - newBalance
+          await updateCreditCard({
+            ...card,
+            currentBalance: parseFloat(newBalance.toFixed(2)),
+            availableCredit: parseFloat(newAvailableCredit.toFixed(2)),
+          })
+
+          // CRITICAL FIX: Restore linked bank account balance for credit card payments
+          if (transactionToDelete.type === 'payment' && transactionToDelete.linkedAccountId) {
+            const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
+            if (linkedAccount) {
+              const newBankBalance = linkedAccount.balance + transactionToDelete.amount
+              await updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+            }
+          }
+        }
+      }
+
+      // If this was a loan payment transaction, recalculate the loan balance
+      else if (transactionToDelete && transactionToDelete.accountType === 'loan' && transactionToDelete.type === 'payment') {
+        const loan = loans.find((l) => l.id === transactionToDelete.accountId)
+        if (loan) {
+          let newRemaining = loan.remainingAmount
+
+          // Reverse the transaction effect
+          newRemaining = loan.remainingAmount + transactionToDelete.amount
+          const newRemainingMonths = Math.ceil((newRemaining / loan.principalAmount) * loan.tenureMonths)
+
+          await updateLoan({
+            ...loan,
+            remainingAmount: parseFloat(newRemaining.toFixed(2)),
+            remainingMonths: newRemainingMonths,
+          })
+
+          // Reconciliation: Refund to linked bank account
+          if (transactionToDelete.linkedAccountId) {
+            const linkedAccount = bankAccounts.find((a) => a.id === transactionToDelete.linkedAccountId)
+            if (linkedAccount) {
+              const newBankBalance = linkedAccount.balance + transactionToDelete.amount
+              await updateBankAccount({ ...linkedAccount, balance: parseFloat(newBankBalance.toFixed(2)) })
+            }
+          }
+        }
+      }
+
+      // Save to localStorage
+      if (username) {
+        localStorage.setItem(getUserKey('transactions', username), JSON.stringify(updatedTransactions))
+      }
+      
+      console.log('✓ Transaction deleted:', id)
+    } catch (error) {
+      console.error('❌ Failed to delete transaction:', error)
+      alert('Failed to delete transaction. Please try again.')
     }
   }
 

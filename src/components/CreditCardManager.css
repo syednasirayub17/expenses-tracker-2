@@ -72,9 +72,8 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   box-sizing: border-box;
-  overflow: hidden;
   width: 100%;
-  max-width: 100%;
+  min-width: 0;
 }
 
 .card-card:hover {
@@ -88,7 +87,7 @@
   border-bottom: 1px solid #f0f0f0;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .card-header-info {
@@ -128,7 +127,7 @@
   width: 100%;
   box-sizing: border-box;
   margin-top: 12px;
-  min-width: 360px;
+  min-width: 0;
 }
 
 .stat-item {
@@ -136,7 +135,7 @@
   padding: 16px 8px;
   box-sizing: border-box;
   overflow: visible;
-  min-width: 120px;
+  min-width: 0;
 }
 
 .stat-label {
@@ -158,7 +157,6 @@
   overflow: visible;
   line-height: 1.1;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  min-width: 120px;
 }
 
 .stat-value.used {

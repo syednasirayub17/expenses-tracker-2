@@ -921,11 +921,32 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const transactionToDelete = transactions.find((t) => t.id === id)
       
-      // Delete from backend first
+      // CRITICAL: Find and delete linked transaction (for dual transactions)
+      let linkedTransactionId: string | null = null
+      if (transactionToDelete?.linkedAccountId) {
+        // Find the matching linked transaction
+        const linkedTransaction = transactions.find(
+          (t) =>
+            t.id !== id &&
+            t.linkedAccountId === transactionToDelete.accountId &&
+            t.accountId === transactionToDelete.linkedAccountId &&
+            t.amount === transactionToDelete.amount &&
+            t.date === transactionToDelete.date
+        )
+        if (linkedTransaction) {
+          linkedTransactionId = linkedTransaction.id
+          // Delete linked transaction from backend
+          await accountApi.deleteTransaction(linkedTransaction.id)
+        }
+      }
+      
+      // Delete main transaction from backend
       await accountApi.deleteTransaction(id)
       
-      // Then update local state
-      const updatedTransactions = transactions.filter((t) => t.id !== id)
+      // Then update local state (remove both transactions)
+      const updatedTransactions = transactions.filter(
+        (t) => t.id !== id && t.id !== linkedTransactionId
+      )
       setTransactions(updatedTransactions)
 
       // If this was a bank account transaction, recalculate the account balance
